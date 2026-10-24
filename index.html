@@ -1,5 +1,10 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Go to Dream</title>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Go to Dream</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
     <style>
@@ -1809,8 +1814,8 @@
   .rec-pill.on { border-color:#a78bfa; background:#5b21b6; color:#fff; }
   .rec-pill.on::before { content:"☑ "; }
   </style>
-
-
+</head>
+<body>
 
 
 
@@ -4781,17 +4786,20 @@
             if (tag) tag.innerText = gtd ? `Go to Dream · ${gtd.name} · 학생별 비밀번호 저장 · 263개 전형 · 자체 추정 모형` : "Go to Dream · 학생별 비밀번호 저장 · 263개 전형 · 자체 추정 모형";
             document.querySelectorAll(".gtd-need-student").forEach(b => { b.disabled = !gtd; b.style.opacity = gtd ? "" : "0.45"; });
             if (!box) return;
-            const inp = (id, type, ph, w) => `<input id="${id}" type="${type}" placeholder="${ph}" autocomplete="off" style="width:${w}; padding:6px 8px; border-radius:6px; border:1px solid #94a3b8; font-size:13px;">`;
+            const inp = (id, type, ph, w) => `<input id="${id}" type="${type}" placeholder="${ph}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:${w}; padding:6px 8px; border-radius:6px; border:1px solid #94a3b8; font-size:13px;">`;
             if (!gtd) {
                 const pend = gtdPending;
                 box.innerHTML = `<div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:6px;">
                     ${inp("gtd-name", "text", "학생 이름", "120px")}${inp("gtd-pw", "password", "비밀번호 (8자 이상)", "160px")}
                     <label style="font-size:12px; color:#334155;"><input type="checkbox" id="gtd-remember"> 이 기기에서 기억</label>
                     <button type="button" class="btn" onclick="gtdOpenFromForm()" style="padding:5px 12px; font-size:12px; font-weight:800;">학생 열기 / 등록</button>
-                    <label class="btn file-upload-btn" style="padding:5px 10px; font-size:12px;">📂 암호 파일(.gtd)에서 열기<input type="file" accept=".gtd,application/json" onchange="gtdOpenFromFile(event)"></label>
+                    <label class="btn file-upload-btn" style="padding:5px 10px; font-size:12px;">📂 암호 파일(.gtd)에서 열기<input type="file" onchange="gtdOpenFromFile(event)"></label>
                 </div>
                 ${pend ? `<div style="margin-top:8px; padding:8px 10px; border:1.5px dashed #f59e0b; border-radius:8px; font-size:12px; color:#334155;">
-                    <strong>'${escapeHtmlDD(pend.name)}'</strong> 학생의 저장본을 찾지 못했습니다(이 기기${pend.remoteTried ? "·GitHub" : ""}). 이름과 비밀번호가 맞다면 <strong>처음 등록</strong>입니다.
+                    <strong>'${escapeHtmlDD(pend.name)}'</strong> 학생의 저장본을 찾지 못했습니다(이 기기${pend.remoteTried ? "·GitHub" : ""}).
+                    <br>· 다른 기기에서 등록했다면: 이름·비밀번호를 그때와 똑같이 넣었는지(띄어쓰기·대소문자), GitHub에 올린 파일 이름이 <strong>${pend.fileId}.gtd</strong>인지 확인하세요. 방금 올렸다면 GitHub 반영까지 1~5분 걸립니다.
+                    ${pend.note ? `<br>· ${pend.note}` : ""}
+                    <br>· 처음 등록하는 학생이 맞다면 아래 [새 학생으로 등록]을 누르세요.
                     ${pend.guest ? `<br><label><input type="checkbox" id="gtd-useguest" checked onchange="const m=document.getElementById('gtd-migrate'); if(this.checked&&m) m.checked=false;"> 지금 화면에 올린 성적표·세특으로 시작</label>` : ""}
                     ${pend.legacy ? `<br><label><input type="checkbox" id="gtd-migrate" ${pend.guest ? "" : "checked"} onchange="const g=document.getElementById('gtd-useguest'); if(this.checked&&g) g.checked=false;"> 이 기기에 남아 있는 예전 HS_only_codex 저장본(${escapeHtmlDD(pend.legacy)})을 이 학생으로 옮기기</label>` : ""}
                     <div style="margin-top:6px; display:flex; gap:6px;"><button type="button" class="btn" onclick="gtdCreateConfirm()" style="padding:4px 12px; font-size:12px; font-weight:800;">새 학생으로 등록</button><button type="button" class="btn" onclick="gtdPending=null; gtdRenderPanel();" style="padding:4px 10px; font-size:12px;">취소</button></div>
@@ -4813,15 +4821,31 @@
         }
         function gtdPwInput() { const e = document.getElementById("gtd-pw2"); return (gtd && gtd.pw) || (e ? e.value : ""); }
         async function gtdCheckPw(pw) { if (!pw) throw new Error("비밀번호를 입력하세요"); if ((await gtdFileId(gtd.name, pw)) !== gtd.fileId) throw new Error("비밀번호가 맞지 않습니다"); gtd.pw = pw; }
-        async function gtdFetchRemote(fileId) {
-            if (hsDb || !/^https?:$/.test(location.protocol)) return { tried: false, file: null };
-            try {
-                for (const path of [fileId + ".gtd", "data/" + fileId + ".gtd"]) {   // 저장소 맨 위 또는 data 폴더
-                    const r = await fetch(path, { cache: "no-store" });
-                    if (r.ok) return { tried: true, file: await r.json() };
-                }
-                return { tried: true, file: null };
-            } catch (e) { return { tried: true, file: null }; }
+        // GitHub에서 이 학생 파일 찾기: ① 정확한 이름(맨 위·data 폴더) ② 못 찾으면 저장소 파일 목록에서 .gtd 파일을 하나씩 열어 봄
+        //   (내려받을 때 브라우저가 이름을 "…(1).gtd", "….gtd.json"처럼 바꾼 경우도 찾음 · 이름+비밀번호가 둘 다 맞아야 열림)
+        async function gtdFindRemote(fileId, name, pw) {
+            if (hsDb || !/^https?:$/.test(location.protocol)) return { tried: false, body: null, note: "이 화면(Claude 링크·파일로 연 화면)에서는 GitHub 파일을 자동으로 찾을 수 없습니다 — [📂 암호 파일(.gtd)에서 열기]를 쓰세요." };
+            const tryOpen = async (url) => {
+                try { const r = await fetch(url, { cache: "no-store" }); if (!r.ok) return null; const f = JSON.parse(await r.text()); if (!f || f.app !== "GoToDream") return null; const b = await gtdDecrypt(f, pw); return gtdNorm(b.name) === gtdNorm(name) ? b : null; } catch (e) { return null; }
+            };
+            for (const path of [fileId + ".gtd", "data/" + fileId + ".gtd"]) { const b = await tryOpen(path); if (b) return { tried: true, body: b, note: "" }; }
+            const host = location.hostname, m = host.match(/^([^.]+)\.github\.io$/i);
+            if (!m) return { tried: true, body: null, note: "" };
+            const seg = location.pathname.split("/").filter(Boolean)[0] || "";
+            const repo = seg && !/\.html?$/i.test(seg) ? seg : host;
+            const base = seg && repo === seg ? "/" + seg + "/" : "/";
+            let list = [];
+            for (const dir of ["", "data"]) {
+                try { const r = await fetch(`https://api.github.com/repos/${m[1]}/${repo}/contents/${dir}`, { cache: "no-store" }); if (r.ok) { const a = await r.json(); if (Array.isArray(a)) list = list.concat(a.filter(x => x.type === "file" && /\.(gtd|json)/i.test(x.name) && x.size < 5e6).map(x => (dir ? dir + "/" : "") + x.name)); } } catch (e) { /* 목록 실패 */ }
+            }
+            if (!list.length) return { tried: true, body: null, note: "" };
+            list.sort((a, b) => (b.split("/").pop().startsWith(fileId) ? 1 : 0) - (a.split("/").pop().startsWith(fileId) ? 1 : 0));
+            let best = null, bestName = "";
+            for (const nm of list.slice(0, 15)) {
+                const b = await tryOpen(base + nm.split("/").map(encodeURIComponent).join("/"));
+                if (b && (!best || String(b.exportedAt || "") > String(best.exportedAt || ""))) { best = b; bestName = nm; }
+            }
+            return { tried: true, body: best, note: best ? `GitHub에서 <strong>${escapeHtmlDD(bestName)}</strong> 파일로 찾았습니다. 다음부터는 이름을 <strong>${fileId}.gtd</strong> 그대로 올리면 더 빨리 열립니다.` : "" };
         }
         async function gtdWriteBody(body) {
             hsReady = false; clearTimeout(hsSaveTimer);
@@ -4858,14 +4882,14 @@
                 const fileId = await gtdFileId(name, pw);
                 gtdUseNamespace(fileId);
                 const local = await hsGet("state");
-                const rem = await gtdFetchRemote(fileId);
-                let body = null;
-                if (rem.file) body = await gtdDecrypt(rem.file, pw);
+                gtdMsg("🔐 확인 중… GitHub에서 파일을 찾는 중입니다");
+                const rem = await gtdFindRemote(fileId, name, pw);
+                const body = rem.body;
                 if (!local && !body) {
                     const lg = await gtdLegacyState();
                     gtdUseNamespace(null);
                     const hasGuest = !!(hasActiveScore || (studentSubjects && studentSubjects.length) || (uploadedMockSessions && uploadedMockSessions.length) || hsCollectRecord().g1 || hsCollectRecord().g2);
-                    gtdPending = { name, pw, fileId, remember, remoteTried: rem.tried, legacy: lg ? ((lg.state.meta && lg.state.meta.scoreFile) || lg.state.name || "저장본") : "",
+                    gtdPending = { name, pw, fileId, remember, remoteTried: rem.tried, note: rem.note, legacy: lg ? ((lg.state.meta && lg.state.meta.scoreFile) || lg.state.name || "저장본") : "",
                         guest: hasGuest ? { state: hsCollectState(), record: hsCollectRecord() } : null };
                     gtdRenderPanel(); return;
                 }
@@ -4876,7 +4900,7 @@
                 await gtdEnter(name, fileId, pw, remember);
                 if (body && gtdMetaRead().syncHash == null) gtdMetaWrite({ syncHash: gtdCurHash(), syncAt: body.exportedAt });
                 gtdRenderPanel();
-                gtdMsg(body ? `✅ ${escapeHtmlDD(name)} 학생을 열었습니다 (GitHub 파일 ${escapeHtmlDD(body.exportedAt || "")} 기준).` : `✅ ${escapeHtmlDD(name)} 학생을 열었습니다 (이 기기 저장본).`);
+                gtdMsg(body ? `✅ ${escapeHtmlDD(name)} 학생을 열었습니다 (GitHub 파일 ${escapeHtmlDD(body.exportedAt || "")} 기준).${rem.note ? "<br>" + rem.note : ""}` : `✅ ${escapeHtmlDD(name)} 학생을 열었습니다 (이 기기 저장본).`);
             } catch (e) { gtdUseNamespace(gtd ? gtd.fileId : null); gtdMsg("⚠️ " + ((e && e.message) || e), true); }
             finally { gtdBusy = false; }
         }
@@ -4907,7 +4931,9 @@
                 if (!name || !pw) throw new Error("먼저 이름과 비밀번호를 입력한 뒤 파일을 고르세요");
                 if (!gtdCan()) throw new Error("이 화면에서는 암호화 기능을 쓸 수 없습니다");
                 gtdMsg("🔐 여는 중…");
-                const body = await gtdDecrypt(JSON.parse(await readFileAsText(f)), pw);
+                let raw; try { raw = JSON.parse(await readFileAsText(f)); } catch (e) { throw new Error("고른 파일이 Go to Dream 암호 파일(.gtd)이 아닙니다"); }
+                const body = await gtdDecrypt(raw, pw);
+                if (gtdNorm(body.name) !== gtdNorm(name)) throw new Error("이 파일은 다른 이름으로 등록된 학생의 파일입니다");
                 const fileId = await gtdFileId(name, pw);
                 gtdUseNamespace(fileId);
                 await gtdWriteBody(body);
@@ -4937,10 +4963,11 @@
             if (!gtd) return;
             try {
                 await gtdCheckPw(gtdPwInput());
-                const rem = await gtdFetchRemote(gtd.fileId);
-                if (!rem.tried) throw new Error("이 화면(파일로 연 화면·링크)에서는 GitHub 파일을 바로 불러올 수 없습니다. [다른 학생 열기] → [암호 파일(.gtd)에서 열기]를 쓰세요");
-                if (!rem.file) throw new Error("GitHub에 이 학생 파일이 아직 없습니다(" + gtd.fileId + ".gtd)");
-                const body = await gtdDecrypt(rem.file, gtd.pw);
+                gtdMsg("🔄 GitHub에서 찾는 중…");
+                const rem = await gtdFindRemote(gtd.fileId, gtd.name, gtd.pw);
+                if (!rem.tried) throw new Error(rem.note.replace(/<[^>]+>/g, ""));
+                if (!rem.body) throw new Error("GitHub에서 이 학생 파일을 찾지 못했습니다(" + gtd.fileId + ".gtd) — 방금 올렸다면 1~5분 뒤 다시 누르세요");
+                const body = rem.body;
                 await gtdWriteBody(body);
                 await gtdEnter(gtd.name, gtd.fileId, gtd.pw, !!localStorage.getItem(GTD_LAST));
                 gtdMetaWrite({ syncHash: gtdCurHash(), syncAt: body.exportedAt });
@@ -9323,5 +9350,5 @@ ${r.clean.slice(0, 14000)}`;
         });
     </script>
 <datalist id="finder-list"></datalist>
-
-</body></html>
+</body>
+</html>
