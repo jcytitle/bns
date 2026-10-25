@@ -1,10 +1,5 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="robots" content="noindex, nofollow, noarchive">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Go to Dream</title>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Go to Dream</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
     <style>
@@ -1019,9 +1014,9 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 /* 수시 보드: 모의고사 칸 숨김 · 정시 보드: 내신 칸 숨김 (계산에는 계속 반영) */
-#board-susi:checked ~ .app-shell .qbox-mock { display: none !important; }
+/* 수시에서도 수능최저 확인을 위해 모의고사 등급 칸은 보임 */
 /* 수시 보드(및 Z점수·세특 보드): 모의고사·백분위 입력과 회차 막대 숨김 / 정시 보드: 내신·학종 역량 숨김 */
-#board-susi:checked ~ .app-shell .sb-mock, #board-susi:checked ~ .app-shell .sb-pct, #board-susi:checked ~ .app-shell #global-mock-session-wrap,
+#board-susi:checked ~ .app-shell .sb-pct,
 #board-zscore:checked ~ .app-shell .sb-mock, #board-zscore:checked ~ .app-shell .sb-pct, #board-zscore:checked ~ .app-shell #global-mock-session-wrap,
 #board-record:checked ~ .app-shell .sb-mock, #board-record:checked ~ .app-shell .sb-pct, #board-record:checked ~ .app-shell #global-mock-session-wrap { display: none !important; }
 #board-jeongsi:checked ~ .app-shell .sb-gpa, #board-jeongsi:checked ~ .app-shell .sb-qual { display: none !important; }
@@ -1523,12 +1518,12 @@
         [style*="color:#c084fc"], [style*="color: #c084fc"],
         [style*="color:#e9d5ff"], [style*="color: #e9d5ff"],
         [style*="color:#a78bfa"], [style*="color: #a78bfa"],
-        [style*="color:#818cf8"], [style*="color: #818cf8"] { color: #374151 !important; }
+        [style*="color:#818cf8"], [style*="color: #818cf8"] { color: #6d28d9 !important; }
         [style*="color:#f87171"], [style*="color: #f87171"],
         [style*="color:#fca5a5"], [style*="color: #fca5a5"],
         [style*="color:#fecaca"], [style*="color: #fecaca"] { color: #b91c1c !important; }
         [style*="color:#ec4899"], [style*="color: #ec4899"],
-        [style*="color:#f9a8d4"], [style*="color: #f9a8d4"] { color: #374151 !important; }
+        [style*="color:#f9a8d4"], [style*="color: #f9a8d4"] { color: #be185d !important; }
         [style*="color:#cbd5e1"], [style*="color: #cbd5e1"],
         [style*="color:#e2e8f0"], [style*="color: #e2e8f0"],
         [style*="color:#f1f5f9"], [style*="color: #f1f5f9"],
@@ -1809,13 +1804,18 @@
             .btn-menu-toggle { padding: 6px 10px !important; font-size: 13px !important; min-height: 0 !important; }
             .brand-title { font-size: 16px !important; }
         }
-    .rec-pill { padding:7px 14px; border-radius:999px; border:1.5px solid #475569; background:rgba(15,23,42,.6); color:#cbd5e1; font-weight:700; font-size:13px; cursor:pointer; }
+    .rec-pill { padding:7px 14px; border-radius:999px; border:1.5px solid #cbd5e1; background:#fff !important; color:#334155 !important; font-weight:700; font-size:13px; cursor:pointer; }
   .rec-pill::before { content:"☐ "; }
-  .rec-pill.on { border-color:#a78bfa; background:#5b21b6; color:#fff; }
+  @media (min-width: 1025px) {
+    .center-content-container .mobile-quick-input-bar > div:first-child,
+    .center-content-container .mobile-quick-input-bar > .mobile-quick-grid { display: none !important; }
+    .sidebar label[for="chk-sidebar"], .sidebar-backdrop { display: none !important; }
+  }
+  .rec-pill.on { border-color:#6d28d9; background:#6d28d9 !important; color:#fff !important; }
   .rec-pill.on::before { content:"☑ "; }
   </style>
-</head>
-<body>
+
+
 
 
 
@@ -1961,7 +1961,7 @@
                             <div class="val" id="disp-conv-9g" style="color:#34d399;">미입력</div>
                         </div>
                     </div>
-                    <input type="range" id="input-gpa" min="1.00" max="4.50" step="0.001" value="1.50" oninput="syncGpaFromRange(this.value)">
+                    <input type="range" id="input-gpa" min="1.00" max="5.00" step="0.001" value="1.50" oninput="syncGpaFromRange(this.value)">
                     <div class="quick-step-row">
                         <button type="button" class="btn-step" onclick="stepGpa(-0.1)">-0.1</button>
                         <button type="button" class="btn-step" onclick="setGpaExact(1.05)">1.05</button>
@@ -2533,14 +2533,14 @@
                                     <span>과목 평균 (μ)</span>
                                     <span id="lbl-z-mean" style="color:#fbbf24; font-weight:800;">65 점</span>
                                 </div>
-                                <input type="range" id="sim-z-mean" min="30" max="88" step="0.5" value="65" oninput="recalcZSimulator('mean')">
+                                <input type="range" id="sim-z-mean" min="30" max="97" step="0.5" value="65" oninput="recalcZSimulator('mean')">
                             </div>
                             <div class="form-slider-group" style="background:#eff6ff; border:1px solid #93c5fd; border-radius:8px; padding:7px 9px;">
                                 <div class="form-slider-header">
                                     <span><strong>[2028 입시 학년(현 고1~) 핵심] 성취도 A(90점↑) 비율 (p<sub>A</sub>%)</strong> <label style="font-size:12px; margin-left:4px;"><input type="checkbox" id="chk-sim-use-arat" checked onchange="recalcZSimulator('mode')"> A비율로 표준편차 자동역산</label></span>
                                     <span id="lbl-z-arat" style="color:#0284c7; font-weight:900;">10.0% (z=1.282)</span>
                                 </div>
-                                <input type="range" id="sim-z-arat" min="2" max="45" step="0.5" value="10" oninput="recalcZSimulator('arat')">
+                                <input type="range" id="sim-z-arat" min="2" max="80" step="0.5" value="10" oninput="recalcZSimulator('arat')">
                             </div>
                             <div class="form-slider-group">
                                 <div class="form-slider-header">
@@ -3182,18 +3182,34 @@
         function parseADistribution(v) {
             const t = String(v == null ? "" : v).trim();
             if (!t) return null;
-            let m = t.match(/^A\s*[:(]?\s*(\d{1,3}(?:\.\d+)?)/i) || t.match(/^(\d{1,3}(?:\.\d+)?)\s*%?\s*\/\s*\d+(?:\.\d+)?\s*%?\s*\/\s*\d/);
+            let m = t.match(/(?:^|[^A-Za-z])A\s*[:(]?\s*(\d{1,3}(?:\.\d+)?)/i) || t.match(/^(\d{1,3}(?:\.\d+)?)\s*%?(?:\s*\/\s*\d+(?:\.\d+)?\s*%?)+/);
             if (!m) return null;
             const a = parseFloat(m[1]);
             return (a > 0 && a <= 100) ? a : null;
         }
-        function estimateSdFromARate(mean, aRatePct) {
-            const m = Number(mean), p = Number(aRatePct);
-            if (!isFinite(m) || !isFinite(p) || p <= 0.2 || p >= 49.0 || m >= 89.0) return null;
-            const zA = probitPct(100 - p);
-            if (!isFinite(zA) || zA <= 0.05) return null;
-            const estSd = (90.0 - m) / zA;
-            return Math.max(4.0, Math.min(35.0, Number(estSd.toFixed(2))));
+        function estimateSdFromARate(mean, aRatePct, bRatePct) {
+            // 정규분포 가정: 90점 이상 비율 = A 비율 → σ = (90 − 평균) / z. A가 50% 근처면 z≈0이라 계산 불가,
+            // 평균과 A 비율이 서로 맞지 않으면(예: A 60%인데 평균 85) 정규분포로 설명할 수 없어 계산하지 않음.
+            // 이때 B 비율이 있으면 80점 이상 비율(A+B)로 같은 방식의 역산을 시도
+            const m = Number(mean), p = Number(aRatePct), b = Number(bRatePct);
+            if (!isFinite(m)) return null;
+            const fit = (cut, pct) => {
+                if (!isFinite(pct) || pct <= 0.2 || pct >= 99.8) return null;
+                const z = probitPct(100 - pct);
+                if (!isFinite(z) || Math.abs(z) < 0.15) return null;
+                const sd = (cut - m) / z;
+                return sd > 0 ? sd : null;
+            };
+            let sd = fit(90.0, p);
+            if (sd === null && isFinite(b) && b >= 0) sd = fit(80.0, p + b);
+            return sd === null ? null : Math.max(4.0, Math.min(35.0, Number(sd.toFixed(2))));
+        }
+        function parseBDistribution(v) {
+            const t = String(v == null ? "" : v).trim();
+            const m = t.match(/(?:^|[^A-Za-z])B\s*[:(]?\s*(\d{1,3}(?:\.\d+)?)/i) || t.match(/^\s*\d{1,3}(?:\.\d+)?\s*%?\s*\/\s*(\d{1,3}(?:\.\d+)?)/);
+            if (!m) return null;
+            const b = parseFloat(m[1]);
+            return (b >= 0 && b <= 100) ? b : null;
         }
         let mockSource = null;   // "file" 성적표 · "manual" 직접 선택 · null 미입력(기본값)    // 업로드된 세특 PDF Blob URL
         let currentGender = "";          // "M" 남학생 / "F" 여학생 / "" 미선택
@@ -3239,9 +3255,20 @@
 
         function cleanWomenUnivNote(note) {
             if (!note) return "";
-            return String(note)
-                .replace(/[,/·\s]*(?:이화여대|숙명여대|성신여대|서울여대|동덕여대|덕성여대|이대|숙대)[^,/)]*/g, "")
-                .replace(/숙명지균·이대면접형/g, "면접형")
+            const W = /이화여대|숙명여대|성신여대|서울여대|동덕여대|덕성여대|이대|숙대|숙명인재|숙명/;
+            // 쉼표·슬래시·'및'·'&'로 나뉜 구절 중 여대 이야기를 하는 구절만 빼고, 괄호 짝이 안 맞는 구절은 원문 유지
+            const parts = String(note).replace(/숙명지균·이대면접형/g, "면접형").split(/\s*(?:,|\/|&|\s및\s)\s*/);
+            const bal = (t) => (t.match(/\(/g) || []).length === (t.match(/\)/g) || []).length;
+            const kept = [];
+            parts.forEach(t => {
+                if (!t) return;
+                if (!(W.test(t) && bal(t))) { kept.push(t); return; }
+                const tail = t.match(/(?:는|은)\s+(.+)$/);   // "숙명여대 지균·숙명인재는 수능최저 없음" → 공통 설명(수능최저 없음)은 남김
+                if (tail && kept.length && !W.test(tail[1])) kept[kept.length - 1] += " — " + tail[1];
+            });
+            return kept.join(", ")
+                .replace(/(^|[(\s·])(?:이화여대|숙명여대|성신여대|서울여대|동덕여대|덕성여대)·/g, "$1")
+                .replace(/·(?:이화여대|숙명여대|성신여대|서울여대|동덕여대|덕성여대)(?=[\s),·]|$)/g, "")
                 .replace(/동국·숙명/g, "동국대")
                 .replace(/인서울\s*(?:주요\s*)?여대/g, "인서울 주요대");
         }
@@ -7256,9 +7283,11 @@
 
             let std = parseFloat(stdEl.value) || 18.5;
             const useArat = useAratEl ? useAratEl.checked : false;
-            if (useArat && zA > 0.05 && mean < 89.0) {
-                std = Math.max(5.0, Math.min(30.0, Number(((90.0 - mean) / zA).toFixed(1))));
-                stdEl.value = std;
+            let aratNote = "";
+            if (useArat) {
+                const est = estimateSdFromARate(mean, arat);
+                if (est !== null) { std = Math.max(5.0, Math.min(30.0, Number(est.toFixed(1)))); stdEl.value = std; }
+                else aratNote = arat > 40 && arat < 60 ? " · A 비율이 50% 근처라 역산 불가(직접 지정값 사용)" : " · 평균과 A 비율이 정규분포로 맞지 않아 역산 불가(A가 50%를 넘으면 평균도 90점 가까이 돼야 함)";
             }
 
             document.getElementById('lbl-z-raw').innerText = raw + " 점";
@@ -7266,7 +7295,7 @@
             if (document.getElementById('lbl-z-arat')) {
                 document.getElementById('lbl-z-arat').innerText = `${arat.toFixed(1)}% (z=${zA.toFixed(3)})`;
             }
-            document.getElementById('lbl-z-std').innerText = std.toFixed(1) + (useArat ? " (A비율 역산)" : " (직접지정)");
+            document.getElementById('lbl-z-std').innerText = std.toFixed(1) + (useArat ? (aratNote ? " (직접지정)" + aratNote : " (A비율 역산)") : " (직접지정)");
 
             const z = (raw - mean) / std;
             const topPct = ((1 - normalCDF(z)) * 100).toFixed(2);
@@ -7322,14 +7351,14 @@
             let zRaw = null, zRank = null, sdAssumed = false, effSd = null, sdMode = "";
             if (rank > 0 && students > 0 && rank <= students) zRank = probitPct(100 * (1 - (rank - 0.5) / students));
             if (isFinite(raw) && isFinite(mean)) {
-                const aSd = (isFinite(aRateIn) && aRateIn > 0.2 && aRateIn < 49) ? estimateSdFromARate(mean, aRateIn) : null;   // 48~49%·평균 89↑이면 null
+                const aSd = (isFinite(aRateIn) && aRateIn > 0.2 && aRateIn < 99.8) ? estimateSdFromARate(mean, aRateIn, num(s.bRate)) : null;   // A 50% 근처·평균과 안 맞으면 null(B 비율이 있으면 80점 기준으로 재시도)
                 if (isFinite(sdIn) && sdIn > 0.5) { effSd = sdIn; sdMode = "실측"; }
                 else if (aSd !== null) { effSd = aSd; sdMode = "A비율"; }
                 else if (zRank === null) { effSd = estimateSdFromMean(mean); sdAssumed = true; sdMode = "추정"; }
                 if (effSd !== null) zRaw = Math.max(-3.5, Math.min(3.5, (raw - mean) / effSd));
             }
             let z = null, kind = "자료부족";
-            const aUnstable = sdMode === "A비율" && aRateIn > 30;   // A 비율이 30%를 넘으면 분포가 한쪽으로 몰려 역산값이 크게 흔들림
+            const aUnstable = sdMode === "A비율" && aRateIn > 30 && aRateIn < 70;   // A 비율이 30%를 넘으면 분포가 한쪽으로 몰려 역산값이 크게 흔들림
             if (zRaw !== null && zRank !== null) {
                 if (sdMode === "실측") { z = zRaw * 0.65 + zRank * 0.35; kind = "혼합"; }
                 else { z = zRank; kind = `석차 · A비율Z ${zRaw >= 0 ? "+" : ""}${zRaw.toFixed(2)}${aUnstable ? "(불안정)" : ""}`; }   // 석차가 있으면 석차 위치가 가장 정확 — A비율 역산값은 참고로만 표시
@@ -7980,6 +8009,7 @@
                         const achRateMatch = achFull.match(/A\s*\(?\s*(\d+(?:\.\d+)?)\s*%?/i) || achFull.match(/\((\d+(?:\.\d+)?)\s*%?\)/);
                         const sdCellRaw = nc.sd != null && row[nc.sd] != null ? String(row[nc.sd]).trim() : "";
                         const distA = nc.dist != null ? parseADistribution(row[nc.dist]) : null;
+                        const distB = nc.dist != null ? parseBDistribution(row[nc.dist]) : null;
                         const sdVal = (!sdCellRaw && distA != null) ? distA + "%" : sdCellRaw ? (/%|^A\s*[:=]/i.test(sdCellRaw) ? sdCellRaw : (!isNaN(parseFloat(sdCellRaw)) ? parseFloat(sdCellRaw) : null)) : (achRateMatch ? achRateMatch[1] + "%" : null);
                         const grdParsed = parseFloat(row[nc.grade]);
                         const grdVal = (!isNaN(grdParsed) && grdParsed >= 1 && grdParsed <= 9) ? grdParsed : null;
@@ -7987,7 +8017,7 @@
                         const stuVal = !isNaN(parseFloat(row[nc.students])) ? parseFloat(row[nc.students]) : null;
                         const noteVal = String(row[nc.note] || "").trim();
 
-                        subjects.push({
+                        subjects.push({ bRate: distB,
                             year: yr,
                             term: tm,
                             sem: `${yr}-${tm}`,
@@ -8909,7 +8939,7 @@ ${r.clean.slice(0, 14000)}`;
         function stepGpa(delta) {
             hasActiveScore = true; gpaSource = studentSubjects.length ? "file" : "manual";
             let val = parseFloat(document.getElementById('input-gpa').value) + delta;
-            val = Math.max(1.00, Math.min(4.50, val));
+            val = Math.max(1.00, Math.min(5.00, val));
             document.getElementById('input-gpa').value = val.toFixed(3);
             document.getElementById('input-gpa-num').value = val.toFixed(3);
             recalcAll();
@@ -9391,5 +9421,5 @@ ${r.clean.slice(0, 14000)}`;
         });
     </script>
 <datalist id="finder-list"></datalist>
-</body>
-</html>
+
+</body></html>
