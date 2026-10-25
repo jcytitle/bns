@@ -1,10 +1,5 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="robots" content="noindex, nofollow, noarchive">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Go to Dream</title>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Go to Dream</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
     <style>
@@ -1819,8 +1814,7 @@
   .rec-pill.on { border-color:#6d28d9; background:#6d28d9 !important; color:#fff !important; }
   .rec-pill.on::before { content:"☑ "; }
   </style>
-</head>
-<body>
+
 
 
 
@@ -2327,6 +2321,7 @@
                         <span id="susi-6cards-headline">🎯 내 성적 맞춤형 수시 6회 최적 추천 포트폴리오 (자체 적합도 50 이상)</span>
                         <span id="susi-portfolio-badge" style="font-size:12px; color:#34d399; font-weight:700;">성적 입력 대기 중</span>
                     </div>
+                    <div style="font-size:12px; color:#475569; margin:-4px 0 8px;">판정 기준: 실질 내신(대학 반영방식)이 <strong>50%컷 안 → 최대 안정</strong> · <strong>50~70%컷 사이 → 최대 적정</strong> · <strong>70%컷 밖 → 최대 소신</strong>. 그 안에서 세특·모의고사·전형 특성을 더한 적합도로 최종 판정합니다(내신을 바꾸면 바로 다시 계산).</div>
                     <div class="cards-6-grid" id="susi-dynamic-cards"></div>
                     <div id="subj-strength-box" class="univ-analysis-section" style="margin-top:16px; padding:12px 14px; border:1.5px solid #38bdf8; display:none;"></div>
                     <div id="rec-scenario-box" class="univ-analysis-section" style="margin-top:16px; padding:12px 14px; border:1.5px solid #a78bfa;"></div>
@@ -4146,7 +4141,7 @@
             const uwayDelta = Number((myGpa1000 - cutGpa1000).toFixed(2));
 
             // 해당 구간 1개 등급당 평균 감점폭(localDropPerGrade)으로 Δ점수차를 정규화하여 정량 적합도 산출
-            const localDrop1000 = effUnivGpa <= 2.0 ? Math.max(15.0, (spec.pts[0] - spec.pts[1]) * 10.0) : Math.max(25.0, (spec.pts[1] - spec.pts[2]) * 10.0);
+            const localDrop1000 = cut70_5g <= 2.0 ? Math.max(15.0, (spec.pts[0] - spec.pts[1]) * 10.0) : Math.max(25.0, (spec.pts[1] - spec.pts[2]) * 10.0);
             let uwayProb = Math.max(15, Math.min(98, Math.round(74 + (uwayDelta / localDrop1000) * slope)));
             if (!csat.pass) uwayProb = 12;
             const uwayLabel = !csat.pass ? "최저미달" : (uwayDelta >= 3.5 ? "최초합안정" : (uwayDelta >= 0.8 ? "적정우위" : (uwayDelta >= -2.5 ? "70%컷경합" : "추합소신")));
@@ -4201,6 +4196,21 @@
             // 수능최저가 있는데 모의고사가 없으면 '안정·적정'으로 올리지 않음
             if (csat.unknown && prob > 65) { prob = 65; if (kan > 4) { kan = 4; kanDesc = "최저 미확인"; } }
             if (u.isComp && kan > 6) { kan = 6; kanDesc = "종합전형(서류 변수) 적정"; }
+            // 내신 위치 관문 — 실질 내신(대학 반영방식, 소수 셋째 자리)을 컷과 직접 비교
+            //   70%컷보다 나쁨 → 최대 '소신'(적합도 65·4칸) / 50%컷보다 나쁨 → 최대 '적정'(적합도 81·6칸)
+            //   상한은 컷에서 멀어질수록 0.01등급당 1점씩 낮아짐(소신 50·적정 66 밑으로는 이 관문이 끌어내리지 않음)
+            //   (컷은 소수 둘째 자리라 0.0005 미만 차이는 같은 값으로 봄)
+            const out70 = effUnivGpa > cut70_5g + 0.0005, out50 = effUnivGpa > cut50_5g + 0.0005;
+            let gpaGate = "";
+            if (csat.pass && out70) {
+                gpaGate = "70%컷 밖";
+                prob = Math.min(prob, Math.max(50, 65 - Math.round((effUnivGpa - cut70_5g) * 100)));
+                if (kan > 4) { kan = 4; kanDesc = "70%컷 밖 소신"; }
+            } else if (csat.pass && out50) {
+                gpaGate = "50~70%컷";
+                prob = Math.min(prob, Math.max(66, 81 - Math.round((effUnivGpa - cut50_5g) * 100)));
+                if (kan > 6) { kan = 6; kanDesc = "50~70%컷 적정"; }
+            }
 
             const adjOverqLimit = cut70_5g >= 4.0 ? 1.50 : overqLimit;
             const isOverqualified = (gemGap > adjOverqLimit);
@@ -4220,9 +4230,10 @@
                 tier = "reach";
                 status = "소신 (" + kan + "칸·적합도 " + prob + ")" + (csat.unknown ? " · 최저 미확인" : "");
             }
+            if (gpaGate === "70%컷 밖" && tier !== "impossible") status += " · 내신이 70%컷(" + cut70_5g.toFixed(2) + ")보다 " + (effUnivGpa - cut70_5g).toFixed(3) + " 낮음";
 
             return Object.assign({}, u, {
-                csat, gap: gemGap, prob, tier, status, isOverqualified,
+                csat, gap: gemGap, prob, tier, status, isOverqualified, gpaGate,
                 gemProb, gemLabel, jinhakProb, kan, kanDesc,
                 myGpa1000, cutGpa1000, cut50Gpa1000, uwayDelta, uwayProb, uwayLabel,
                 cut50_5g, cut70_5g, replRate, effUnivGpa, usedTopN: stuCalc.usedTopN,
@@ -9517,5 +9528,5 @@ ${r.clean.slice(0, 14000)}`;
         });
     </script>
 <datalist id="finder-list"></datalist>
-</body>
-</html>
+
+</body></html>
