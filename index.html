@@ -1954,14 +1954,14 @@
                     <div class="score-stat-grid" style="margin-bottom:8px;">
                         <div class="score-stat-box">
                             <div class="title">5등급제 등급 (직접입력)</div>
-                            <input type="number" id="input-gpa-num" min="1.00" max="5.00" step="0.01" value="" placeholder="미입력" onchange="syncGpaFromNum(this.value)" style="width:100%; background:#0f172a; border:1px solid #38bdf8; color:#00f0ff; font-weight:900; font-size:14px; text-align:center; border-radius:4px; padding:3px;">
+                            <input type="number" id="input-gpa-num" min="1.000" max="5.000" step="0.001" inputmode="decimal" value="" placeholder="미입력" onchange="syncGpaFromNum(this.value)" style="width:100%; background:#0f172a; border:1px solid #38bdf8; color:#00f0ff; font-weight:900; font-size:14px; text-align:center; border-radius:4px; padding:3px;">
                         </div>
                         <div class="score-stat-box">
                             <div class="title">9등급제 등가환산</div>
                             <div class="val" id="disp-conv-9g" style="color:#34d399;">미입력</div>
                         </div>
                     </div>
-                    <input type="range" id="input-gpa" min="1.00" max="4.50" step="0.01" value="1.50" oninput="syncGpaFromRange(this.value)">
+                    <input type="range" id="input-gpa" min="1.00" max="4.50" step="0.001" value="1.50" oninput="syncGpaFromRange(this.value)">
                     <div class="quick-step-row">
                         <button type="button" class="btn-step" onclick="stepGpa(-0.1)">-0.1</button>
                         <button type="button" class="btn-step" onclick="setGpaExact(1.05)">1.05</button>
@@ -2293,8 +2293,13 @@
                     <div id="hope-bar" class="univ-analysis-section" style="margin-bottom:12px; padding:10px 14px; border:1.5px solid #f59e0b;">
                         <div style="font-weight:800; color:#fbbf24; font-size:14px; margin-bottom:6px;">⭐ 1순위 — 가고 싶은 대학·학과</div>
                         <div style="display:flex; flex-wrap:wrap; gap:8px; font-size:12px; color:#cbd5e1;">
-                            <label style="flex:1 1 220px;">희망 대학 <input type="text" id="hope-univ" maxlength="60" placeholder="예: 서울대, 연세대, 고려대 (앞에 쓴 대학이 우선)" onchange="hopeSet('hopeUniv', this.value)" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #475569; background:#0f172a; color:#e2e8f0;"></label>
-                            <label style="flex:1 1 180px;">희망 학과 <input type="text" id="hope-dept" maxlength="40" placeholder="예: 정치외교, 국제" onchange="hopeSet('hopeDept', this.value)" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #475569; background:#0f172a; color:#e2e8f0;"></label>
+                            <label style="flex:1 1 220px;">희망 대학 <input type="text" id="hope-univ" maxlength="60" placeholder="예: 서울대, 연세대, 고려대 (앞에 쓴 대학이 우선)" onkeydown="if(event.key==='Enter'){event.preventDefault();hopeApply();}" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #475569; background:#0f172a; color:#e2e8f0;"></label>
+                            <label style="flex:1 1 180px;">희망 학과 <input type="text" id="hope-dept" maxlength="40" placeholder="예: 정치외교, 국제" onkeydown="if(event.key==='Enter'){event.preventDefault();hopeApply();}" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #475569; background:#0f172a; color:#e2e8f0;"></label>
+                        </div>
+                        <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
+                            <button type="button" class="btn" onclick="hopeApply()" style="padding:6px 16px; font-size:13px; font-weight:800; border-color:#f59e0b; color:#b45309;">⭐ 적용하고 비교 보기</button>
+                            <button type="button" class="btn" onclick="hopeClear()" style="padding:6px 12px; font-size:12px;">지우기</button>
+                            <label style="font-size:12px; color:#475569; display:flex; align-items:center; gap:4px;">희망 카드 최대 <select id="hope-max" onchange="hopeSetMax(this.value)" style="padding:4px 6px; border-radius:6px;"><option value="3">3장</option><option value="4">4장</option><option value="5">5장</option><option value="6">6장</option></select></label>
                         </div>
                         <div id="hope-state" style="font-size:12px; color:#94a3b8; margin-top:6px; line-height:1.6;"></div>
                     </div>
@@ -3657,64 +3662,43 @@
         // 과목별 성적표(.xlsx) 업로드 시 대학별 반영 방식(전과목 vs 상위10과목 vs 상위20과목, 등급+성취도 배점)을 직접 적용!
         function calcStudentUnivEffectiveGpaAndPts(u, st, spec) {
             const SUBJ_RE = { KEMSS: /^(국어|수학|영어|사회|과학|한국사|역사|도덕)/ };
-            const validSubs = (studentSubjects || []).filter(s => s && s.grade !== null && s.grade !== "" && !isNaN(Number(s.grade)) && Number(s.grade) >= 1 && Number(s.grade) <= 5)
-                .filter(s => !spec.subj || !SUBJ_RE[spec.subj] || SUBJ_RE[spec.subj].test(String(s.group || s.name || "")));
-            let subAllGpa = null;
-            if (validSubs.length >= 3) {
-                let uSum = 0, gSum = 0;
-                validSubs.forEach(s => { const u = Math.max(1, Number(s.unit) || 3); uSum += u; gSum += Number(s.grade) * u; });
-                if (uSum > 0) subAllGpa = gSum / uSum;
+            const graded = (studentSubjects || []).filter(s => s && s.grade !== null && s.grade !== "" && !isNaN(Number(s.grade)) && Number(s.grade) >= 1 && Number(s.grade) <= 5);
+            const validSubs = graded.filter(s => !spec.subj || !SUBJ_RE[spec.subj] || SUBJ_RE[spec.subj].test(String(s.group || s.name || "")));
+            const r3 = (x) => Number(Math.max(1.00, Math.min(5.00, x)).toFixed(3));
+            // 과목별 성적표가 없으면 입력한 등급(st.gpa)을 그대로 대학별 배점표에 대입
+            if (validSubs.length < 3 || graded.length < 3) {
+                return { effGpa: r3(st.gpa), pt100: interpolate5GradePoint(st.gpa, spec.pts), usedTopN: 0 };
             }
-            // 과목별 시트가 없는 경우: 입력한 등급(st.gpa) 그대로 대학별 배점표에 대입
-            if (validSubs.length < 3) {
-                const pt100 = interpolate5GradePoint(st.gpa, spec.pts);
-                return { effGpa: st.gpa, pt100, usedTopN: 0 };
-            }
-            // 슬라이더 조작 또는 세부 분석(ddBoundaries) 내신 경계 시뮬레이션 중인 경우: 과목별 상위과목(Top-N) 유불리 오프셋을 연속 반영
-            if (subAllGpa !== null && Math.abs(st.gpa - subAllGpa) > 0.04) {
-                let topSubs = validSubs.slice();
-                if (spec.topN > 0 && validSubs.length > spec.topN) {
-                    topSubs.sort((a, b) => (Number(a.grade) - Number(b.grade)) || ((Number(b.raw) || 0) - (Number(a.raw) || 0)));
-                    topSubs = topSubs.slice(0, spec.topN);
-                }
-                let uS = 0, gS = 0;
-                topSubs.forEach(s => { const u = Math.max(1, Number(s.unit) || 3); uS += u; gS += Number(s.grade) * u; });
-                const topGpa = uS > 0 ? (gS / uS) : subAllGpa;
-                const deltaGpa = Math.max(-0.45, Math.min(0.45, topGpa - subAllGpa));
-                const simEffGpa = Number(Math.max(1.00, Math.min(5.00, st.gpa + deltaGpa)).toFixed(2));
-                const pt100 = interpolate5GradePoint(simEffGpa, spec.pts);
-                return { effGpa: simEffGpa, pt100, usedTopN: (spec.topN > 0 && validSubs.length > spec.topN) ? spec.topN : 0 };
-            }
-
-            let targetSubs = validSubs.slice();
-            let usedTopN = 0;
+            // 성적표 전체 평균(왼쪽 내신 칸의 기준값)
+            let uA = 0, gA = 0;
+            graded.forEach(s => { const w = Math.max(1, Number(s.unit) || 3); uA += w; gA += Number(s.grade) * w; });
+            const allGpa = gA / uA;
+            // 대학 반영방식(반영 교과·상위 N과목·등급/성취도 배점)으로 본 실질 내신
+            let targetSubs = validSubs.slice(), usedTopN = 0;
             if (spec.topN > 0 && validSubs.length > spec.topN) {
                 targetSubs.sort((a, b) => (Number(a.grade) - Number(b.grade)) || ((Number(b.raw) || 0) - (Number(a.raw) || 0)));
                 targetSubs = targetSubs.slice(0, spec.topN);
                 usedTopN = spec.topN;
             }
-
-            let unitSum = 0;
-            let weightedGpaSum = 0;
-            let weightedPtSum = 0;
+            let unitSum = 0, gSum = 0, ptSum = 0;
             targetSubs.forEach(s => {
                 const unit = Math.max(1, Number(s.unit) || 3);
                 const grd = Math.max(1, Math.min(5, Math.round(Number(s.grade))));
                 const achKey = String(s.ach || "").trim().toUpperCase().charAt(0);
                 const rankPt = spec.pts[grd - 1] !== undefined ? spec.pts[grd - 1] : 85;
                 const achPt = spec.achPts[achKey];
-                const combinedPt = achPt !== undefined ? rankPt * spec.rankW + achPt * spec.achW : rankPt;   // 성취도 없음 → 등급 점수만
-
-                unitSum += unit;
-                weightedGpaSum += Number(s.grade) * unit;
-                weightedPtSum += combinedPt * unit;
+                unitSum += unit; gSum += Number(s.grade) * unit;
+                ptSum += (achPt !== undefined ? rankPt * spec.rankW + achPt * spec.achW : rankPt) * unit;
             });
-
-            const effGpa = unitSum > 0 ? (weightedGpaSum / unitSum) : st.gpa;
-            const ptFromSubs = unitSum > 0 ? (weightedPtSum / unitSum) : interpolate5GradePoint(effGpa, spec.pts);
-            const ptFromContinuous = interpolate5GradePoint(effGpa, spec.pts);
-            const pt100 = ptFromSubs * 0.65 + ptFromContinuous * 0.35;
-            return { effGpa: Number(effGpa.toFixed(2)), pt100, usedTopN };
+            const effSubj = gSum / unitSum;
+            // 왼쪽 내신 칸을 직접 바꿨으면(성적표 평균과 0.0005 이상 차이) 그 차이만큼 실질 내신을 옮기고 배점도 다시 계산
+            const delta = st.gpa - allGpa;
+            if (Math.abs(delta) > 0.0005) {
+                const eff = r3(st.gpa + Math.max(-0.45, Math.min(0.45, effSubj - allGpa)));
+                return { effGpa: eff, pt100: interpolate5GradePoint(eff, spec.pts), usedTopN };
+            }
+            const pt100 = (ptSum / unitSum) * 0.65 + interpolate5GradePoint(effSubj, spec.pts) * 0.35;
+            return { effGpa: r3(effSubj), pt100, usedTopN };
         }
 
         // 정시 대학별 영어 1~6등급 감점표 (1,000점 만점 기준 감점) 및 2028 정시 학생부 반영비율 DB
@@ -3956,8 +3940,8 @@
                 const avgG = (korG + mathG + engG + ((t1G + t2G) / 2)) / 4;
                 const syncedGpa = csatAvgGradeToExpectedGpa(avgG);
                 if (gpaSource !== "manual") gpaSource = "mock";
-                document.getElementById('input-gpa').value = syncedGpa.toFixed(2);
-                document.getElementById('input-gpa-num').value = syncedGpa.toFixed(2);
+                document.getElementById('input-gpa').value = syncedGpa.toFixed(3);
+                document.getElementById('input-gpa-num').value = syncedGpa.toFixed(3);
             }
         }
 
@@ -4012,7 +3996,7 @@
         function numOr(v, fb) { const n = parseFloat(v); return isFinite(n) ? n : fb; }   // 0도 정상값으로 인정 (|| 기본값 금지)
         function getStudentScores(noStress) {
             const val = (id) => { const e = document.getElementById(id); return e ? e.value : ""; };
-            const gpa = Math.max(1, Math.min(5, numOr(val('input-gpa'), 1.50)));
+            const gpa = Math.max(1, Math.min(5, numOr(val('input-gpa-num'), numOr(val('input-gpa'), 1.50))));
             const acad = qualSrc.acad ? numOr(val('input-acad'), QUAL_NEUTRAL) : QUAL_NEUTRAL;
             const career = qualSrc.career ? numOr(val('input-career'), QUAL_NEUTRAL) : QUAL_NEUTRAL;
             const comm = qualSrc.comm ? numOr(val('input-comm'), QUAL_NEUTRAL) : QUAL_NEUTRAL;
@@ -4227,11 +4211,11 @@
             const csatEquiv5G = csatAvgGradeToExpectedGpa((st.kor + st.math + st.eng + Math.min(st.t1, st.t2)) / 4);
             let posText = "";
             if (st.gpa + 0.25 < csatEquiv5G) {
-                posText = `<strong style="color:#34d399;">[수시 우위형]</strong> 내신(${st.gpa.toFixed(2)}등급)이 모의고사(백분위 ${st.pAvg.toFixed(1)}%) 대비 우위에 있어 <strong>수시 교과·학종에서 승부</strong>를 봐야 하며, 수능최저 충족 관리가 핵심입니다.`;
+                posText = `<strong style="color:#34d399;">[수시 우위형]</strong> 내신(${st.gpa.toFixed(3)}등급)이 모의고사(백분위 ${st.pAvg.toFixed(1)}%) 대비 우위에 있어 <strong>수시 교과·학종에서 승부</strong>를 봐야 하며, 수능최저 충족 관리가 핵심입니다.`;
             } else if (st.gpa - 0.25 > csatEquiv5G) {
-                posText = `<strong style="color:#fbbf24;">[정시·수시상향 우위형]</strong> 모의고사(백분위 ${st.pAvg.toFixed(1)}%)가 내신(${st.gpa.toFixed(2)}등급) 대비 강세이므로, <strong>수시 납치(무면접 하향지원)를 피하고 수능 후 면접형·높은 수능최저 전형 위주로 상향 배치</strong>해야 합니다.`;
+                posText = `<strong style="color:#fbbf24;">[정시·수시상향 우위형]</strong> 모의고사(백분위 ${st.pAvg.toFixed(1)}%)가 내신(${st.gpa.toFixed(3)}등급) 대비 강세이므로, <strong>수시 납치(무면접 하향지원)를 피하고 수능 후 면접형·높은 수능최저 전형 위주로 상향 배치</strong>해야 합니다.`;
             } else {
-                posText = `<strong style="color:#38bdf8;">[수시·정시 균형형]</strong> 내신(${st.gpa.toFixed(2)}등급)과 모의고사(백분위 ${st.pAvg.toFixed(1)}%)가 균형을 이루고 있어, 정시 지원 가능선(7칸 안정대학)을 하한선으로 두고 수시 6장을 적정~상향 배치하는 전략이 최적입니다.`;
+                posText = `<strong style="color:#38bdf8;">[수시·정시 균형형]</strong> 내신(${st.gpa.toFixed(3)}등급)과 모의고사(백분위 ${st.pAvg.toFixed(1)}%)가 균형을 이루고 있어, 정시 지원 가능선(7칸 안정대학)을 하한선으로 두고 수시 6장을 적정~상향 배치하는 전략이 최적입니다.`;
             }
 
             // 2. 대학별 내신 산출식 유불리 (전과목 vs 상위10과목 등)
@@ -4244,11 +4228,11 @@
                 gpaFormulaText = `업로드된 <strong>${studentSubjects.length}과목 성적표</strong> 정밀 산출 결과: 전과목 반영 대학(고대식 등) 실질내신 <strong>${kuRes.effGpa.toFixed(2)}등급(${(kuRes.pt100*10).toFixed(1)}점)</strong> vs <strong>상위10과목 반영 대학(동국대·가천대식) 실질내신 <span style="color:#00f0ff;">${dguRes.effGpa.toFixed(2)}등급(${(dguRes.pt100*10).toFixed(1)}점)</span></strong>으로 계산되었습니다.`;
             } else {
                 if (st.gpa <= 1.25) {
-                    gpaFormulaText = `내신 ${st.gpa.toFixed(2)}등급 구간에서는 <strong>1~2등급 배점 격차가 5점으로 큰 고려대·연세대</strong>와 <strong>원점수 Z점수·이수충실도를 보는 서울대·성균관대·한양대</strong> 모두 최상위권 변별력을 확보합니다.`;
+                    gpaFormulaText = `내신 ${st.gpa.toFixed(3)}등급 구간에서는 <strong>1~2등급 배점 격차가 5점으로 큰 고려대·연세대</strong>와 <strong>원점수 Z점수·이수충실도를 보는 서울대·성균관대·한양대</strong> 모두 최상위권 변별력을 확보합니다.`;
                 } else if (st.gpa <= 2.10) {
-                    gpaFormulaText = `내신 ${st.gpa.toFixed(2)}등급 구간에서는 2~3등급 감점이 급격한 대학(고대 3등급 83점)보다 <strong>등급 간 점수차가 완만한 서강대(94점)·중앙대(93점)·동국대(상위10과목, 96점)·건국대(상위20과목)</strong> 및 <strong>교과종합평가 반영 대학(한양대 40%·성대 30%·경희대 30%)</strong>이 정량 환산에서 유리합니다.`;
+                    gpaFormulaText = `내신 ${st.gpa.toFixed(3)}등급 구간에서는 2~3등급 감점이 급격한 대학(고대 3등급 83점)보다 <strong>등급 간 점수차가 완만한 서강대(94점)·중앙대(93점)·동국대(상위10과목, 96점)·건국대(상위20과목)</strong> 및 <strong>교과종합평가 반영 대학(한양대 40%·성대 30%·경희대 30%)</strong>이 정량 환산에서 유리합니다.`;
                 } else {
-                    gpaFormulaText = `내신 ${st.gpa.toFixed(2)}등급 구간에서는 전과목 단순교과보다 <strong>상위 10~12과목 반영 대학(동국대·가천대 등)</strong>과 <strong>서류·면접 비중이 높은 학생부종합전형</strong>이 실질 합격률에서 유리합니다.`;
+                    gpaFormulaText = `내신 ${st.gpa.toFixed(3)}등급 구간에서는 전과목 단순교과보다 <strong>상위 10~12과목 반영 대학(동국대·가천대 등)</strong>과 <strong>서류·면접 비중이 높은 학생부종합전형</strong>이 실질 합격률에서 유리합니다.`;
                 }
             }
 
@@ -4308,6 +4292,7 @@
                 if (document.getElementById('susi-portfolio-badge')) {
                     document.getElementById('susi-portfolio-badge').innerText = "성적 입력 대기 중";
                 }
+                if (typeof renderHopeBar === "function") renderHopeBar(null, null);
 
                 const emptyCardHtml = `
                     <div class="univ-analysis-section" style="grid-column:1/-1; text-align:center; padding:32px 20px; border:1.5px dashed #38bdf8;">
@@ -4344,11 +4329,11 @@
             const st = getStudentScores();
             const stuPrefix = currentStudentName ? `[${currentStudentName}] ` : "";
 
-            document.getElementById('susi-disp-gpa').innerText = st.gpa.toFixed(2) + " 등급";
-            document.getElementById('input-gpa-num').value = st.gpa.toFixed(2);
+            document.getElementById('susi-disp-gpa').innerText = st.gpa.toFixed(3) + " 등급";
+            document.getElementById('input-gpa-num').value = st.gpa.toFixed(3);
             document.getElementById('disp-conv-9g').innerHTML = `${st.conv9.toFixed(2)} 등급 <span style="display:block; font-size:12px; color:#94a3b8; font-weight:600;">평균 유지 ${st.conv9Range.opt.toFixed(2)} · 현재 위치(${st.conv9Range.sems ? st.conv9Range.sems + "학기" : "5학기 가정"}) ${st.conv9Range.base.toFixed(2)} · 1·2학기 자료 ${st.conv9Range.cons.toFixed(2)}</span>`;
             if (document.getElementById('top-disp-gpa')) {
-                document.getElementById('top-disp-gpa').innerHTML = `${stuPrefix}${st.gpa.toFixed(2)} 등급 <span style="font-size:12px; color:#94a3b8;">(9등급환산 ${st.conv9.toFixed(2)})</span>`;
+                document.getElementById('top-disp-gpa').innerHTML = `${stuPrefix}${st.gpa.toFixed(3)} 등급 <span style="font-size:12px; color:#94a3b8;">(9등급환산 ${st.conv9.toFixed(2)})</span>`;
             }
             if (document.getElementById('top-disp-csat-sum')) {
                 const csatLine = "국" + st.kor + "·수" + st.math + "·영" + st.eng + "·탐" + st.t1 + "/" + st.t2 + "·한" + st.hist + " | 백분위 평균 " + st.pAvg.toFixed(2) + (pctManual ? " (실제)" : " (일부 가정)") + (st.nsu ? " · N수 가정 '" + st.nsu.label + "' 적용" : "");
@@ -4367,7 +4352,7 @@
 
             const badgeEl = document.getElementById('susi-portfolio-badge');
             if (badgeEl) {
-                badgeEl.innerText = stuPrefix + (currentTrack === "ALL" && currentStream ? STREAM_LABEL[currentStream] + " 계열" : (TRACK_NAMES[currentTrack] || "전체 계열")) + (currentGender === "M" ? " · 여대 제외" : "") + " · 내신 " + st.gpa.toFixed(2) + " 기준";
+                badgeEl.innerText = stuPrefix + (currentTrack === "ALL" && currentStream ? STREAM_LABEL[currentStream] + " 계열" : (TRACK_NAMES[currentTrack] || "전체 계열")) + (currentGender === "M" ? " · 여대 제외" : "") + " · 내신 " + st.gpa.toFixed(3) + " 기준";
             }
 
             const susiHeadline = document.getElementById('susi-6cards-headline');
@@ -4380,6 +4365,7 @@
             const holdHtml = (title, body) => `<div class="univ-analysis-section" style="grid-column:1/-1; text-align:center; padding:26px 18px; border:1.5px dashed #f59e0b;"><div style="font-size:16px; font-weight:800; color:#fbbf24; margin-bottom:6px;">${title}</div><p style="font-size:12px; color:#cbd5e1; line-height:1.6;">${body}</p></div>`;
             if (gpaSource === null) {
                 if (typeof renderRecBar === "function") renderRecBar(null, null);
+                if (typeof renderHopeBar === "function") renderHopeBar(null, null);
                 document.getElementById('susi-dynamic-cards').innerHTML = holdHtml("⏸ 내신이 입력되지 않아 수시 추천을 보류했습니다", "기본값으로 추천을 만들면 실제보다 좋거나 나쁜 결과가 나올 수 있습니다. 내신 등급 버튼을 누르거나 성적표를 올려 주세요. (모의고사 등급으로 내신을 어림하려면 모의고사 칸의 [내신 자동맞춤]을 켜세요 — 이 경우 추정 내신으로 표시됩니다.)");
                 document.getElementById('susi-dynamic-matrix').innerHTML = "";
                 const tb = document.querySelector('#susi-dynamic-table tbody'); if (tb) tb.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:18px; color:#94a3b8;">내신 미입력 — 수시 비교표 보류</td></tr>`;
@@ -4421,7 +4407,7 @@
             }
             if (applicantMode === "GRAD") { susiMsg.push("졸업생(N수)으로 선택해 <strong>재학생 전용 전형을 뺐습니다</strong>."); jMsg.push("졸업생(N수)으로 선택해 고려대 교과우수·서강대 지역균형 정시를 뺐습니다."); }
             if (applicantMode === "CURONLY") { susiMsg.push("<strong>재학생 전용 전형만</strong> 보고 있습니다."); jMsg.push("<strong>재학생 전용 정시</strong>(고려대 교과우수·서강대 지역균형)만 보고 있습니다."); }
-            if (gpaSource === "mock") susiMsg.push(`내신을 입력하지 않아 <strong>모의고사 등급으로 추정한 내신 ${st.gpa.toFixed(2)}</strong>로 수시를 계산했습니다. 실제 내신을 선택하거나 성적표를 올리면 정확해집니다.`);
+            if (gpaSource === "mock") susiMsg.push(`내신을 입력하지 않아 <strong>모의고사 등급으로 추정한 내신 ${st.gpa.toFixed(3)}</strong>로 수시를 계산했습니다. 실제 내신을 선택하거나 성적표를 올리면 정확해집니다.`);
             if (gpaSource === null) susiMsg.push(`내신이 입력되지 않아 수시 추천을 보류했습니다.`);
             if (!st.qualEvaluated) susiMsg.push(`학생부(세특)를 분석하지 않아 학종 3대 역량은 <strong>미평가</strong>입니다 — 서류 가산·감산 없이(중립값) 내신·수능최저만으로 계산했습니다. 세특 PDF를 올리거나 역량 슬라이더를 직접 조정하면 반영됩니다.`);
             else if (!qualSrc.career && !qualSrc.comm) susiMsg.push(`진로·공동체역량은 <strong>미평가</strong>(중립값)이고, 학업역량만 성적표 Z점수로 반영했습니다.`);
@@ -4587,7 +4573,7 @@
             const sess = uploadedMockSessions && uploadedMockSessions[activeMockSessionIdx];
             hsLogEntries.unshift({
                 at: hsNowStr(), kind, file: file || "",
-                gpa: gpaSource ? Number(st.gpa.toFixed(2)) : null,
+                gpa: gpaSource ? Number(st.gpa.toFixed(3)) : null,
                 mock: mockSource ? `국${st.kor}·수${st.math}·영${st.eng}·탐${st.t1}/${st.t2}` : "",
                 mockTitle: sess ? sess.title : "", pAvg: mockSource ? Number(st.pAvg.toFixed(2)) : null,
                 qual: qualSrc.career || qualSrc.comm ? [st.acad, st.career, st.comm].map(x => Number(x.toFixed(1))) : null
@@ -4828,9 +4814,12 @@
             const tryOpen = async (url) => {
                 try { const r = await fetch(url, { cache: "no-store" }); if (!r.ok) return null; const f = JSON.parse(await r.text()); if (!f || f.app !== "GoToDream") return null; const b = await gtdDecrypt(f, pw); return gtdNorm(b.name) === gtdNorm(name) ? b : null; } catch (e) { return null; }
             };
-            for (const path of [fileId + ".gtd", "data/" + fileId + ".gtd"]) { const b = await tryOpen(path); if (b) return { tried: true, body: b, note: "" }; }
+            // 같은 학생 파일이 여러 개(덮어쓰지 않고 "(1)" 등으로 또 올린 경우)면 가장 최근에 받은 것을 씀
+            let best = null, bestName = "", dupN = 0;
+            const consider = (b, nm) => { if (!b) return; dupN++; if (!best || String(b.exportedAt || "") > String(best.exportedAt || "")) { best = b; bestName = nm; } };
+            for (const path of [fileId + ".gtd", "data/" + fileId + ".gtd"]) consider(await tryOpen(path), path);
             const host = location.hostname, m = host.match(/^([^.]+)\.github\.io$/i);
-            if (!m) return { tried: true, body: null, note: "" };
+            if (!m) return { tried: true, body: best, note: "" };
             const seg = location.pathname.split("/").filter(Boolean)[0] || "";
             const repo = seg && !/\.html?$/i.test(seg) ? seg : host;
             const base = seg && repo === seg ? "/" + seg + "/" : "/";
@@ -4838,14 +4827,16 @@
             for (const dir of ["", "data"]) {
                 try { const r = await fetch(`https://api.github.com/repos/${m[1]}/${repo}/contents/${dir}`, { cache: "no-store" }); if (r.ok) { const a = await r.json(); if (Array.isArray(a)) list = list.concat(a.filter(x => x.type === "file" && /\.(gtd|json)/i.test(x.name) && x.size < 5e6).map(x => (dir ? dir + "/" : "") + x.name)); } } catch (e) { /* 목록 실패 */ }
             }
-            if (!list.length) return { tried: true, body: null, note: "" };
-            list.sort((a, b) => (b.split("/").pop().startsWith(fileId) ? 1 : 0) - (a.split("/").pop().startsWith(fileId) ? 1 : 0));
-            let best = null, bestName = "";
-            for (const nm of list.slice(0, 15)) {
-                const b = await tryOpen(base + nm.split("/").map(encodeURIComponent).join("/"));
-                if (b && (!best || String(b.exportedAt || "") > String(best.exportedAt || ""))) { best = b; bestName = nm; }
+            const exact = new Set([fileId + ".gtd", "data/" + fileId + ".gtd"]);
+            const same = list.filter(nm => nm.split("/").pop().startsWith(fileId) && !exact.has(nm));
+            for (const nm of same) consider(await tryOpen(base + nm.split("/").map(encodeURIComponent).join("/")), nm);
+            if (!best) {   // 이름이 완전히 바뀐 경우: 나머지 암호 파일을 열어 봄
+                for (const nm of list.filter(nm => !nm.split("/").pop().startsWith(fileId)).slice(0, 15)) consider(await tryOpen(base + nm.split("/").map(encodeURIComponent).join("/")), nm);
             }
-            return { tried: true, body: best, note: best ? `GitHub에서 <strong>${escapeHtmlDD(bestName)}</strong> 파일로 찾았습니다. 다음부터는 이름을 <strong>${fileId}.gtd</strong> 그대로 올리면 더 빨리 열립니다.` : "" };
+            let note = "";
+            if (best && dupN > 1) note = `⚠️ GitHub에 이 학생 파일이 <strong>${dupN}개</strong> 있어 가장 최근 것(<strong>${escapeHtmlDD(bestName)}</strong>, ${escapeHtmlDD(best.exportedAt || "")})을 열었습니다. 혼동을 막으려면 나머지는 지우고 <strong>${fileId}.gtd</strong> 하나만 두세요.`;
+            else if (best && !exact.has(bestName)) note = `GitHub에서 <strong>${escapeHtmlDD(bestName)}</strong> 파일로 찾았습니다. 다음부터는 이름을 <strong>${fileId}.gtd</strong> 그대로 올리면 더 빨리 열립니다.`;
+            return { tried: true, body: best, note };
         }
         async function gtdWriteBody(body) {
             hsReady = false; clearTimeout(hsSaveTimer);
@@ -5809,7 +5800,7 @@
             const L = aptLean(fit);
             const st = hasActiveScore ? getStudentScores() : null;
             const lines = [];
-            lines.push(["학생", `${currentStudentName || "학생"}${st && gpaSource ? " · 내신 " + st.gpa.toFixed(2) : ""}${st && mockSource ? " · 국수탐 백분위 " + st.pAvg.toFixed(1) : ""}`]);
+            lines.push(["학생", `${currentStudentName || "학생"}${st && gpaSource ? " · 내신 " + st.gpa.toFixed(3) : ""}${st && mockSource ? " · 국수탐 백분위 " + st.pAvg.toFixed(1) : ""}`]);
             lines.push(["적성", `흥미 ${top.map(c => c + "(" + RIASEC.find(r => r[0] === c)[1] + ")").join("·")} · 적성 1위 계열 ${tName(order[0])} · ${L.text}${aptState.test ? " · " + aptState.test : ""}`]);
             if (sk) lines.push(["세특", `감지된 희망 계열 ${tName(sk.track)} · 진로 연결 ${Math.round(sk.careerRate * 100)}% · 평균 깊이 ${sk.avgDepth.toFixed(1)}/5`]);
             const hope = aptState.hopeTrack, three = [hope && tName(hope), tName(order[0]), sk && tName(sk.track)].filter(Boolean);
@@ -5974,7 +5965,7 @@
             }
             const trackList = getActiveTrackList();
             const kpi = (k, v, s) => `<div class="kpi" data-key="k::${k}"><div class="k">${k}</div><div class="v" data-count="${escapeHtmlDD(v)}">${escapeHtmlDD(v)}</div><div class="s">${s}</div></div>`;
-            const gpaK = gpaSource ? kpi("내신 (5등급)", st.gpa.toFixed(2), `9등급 환산 ${st.conv9.toFixed(2)}${gpaSource === "mock" ? " · 모의고사로 추정" : ""}`) : kpi("내신 (5등급)", "—", "입력 전");
+            const gpaK = gpaSource ? kpi("내신 (5등급)", st.gpa.toFixed(3), `9등급 환산 ${st.conv9.toFixed(2)}${gpaSource === "mock" ? " · 모의고사로 추정" : ""}`) : kpi("내신 (5등급)", "—", "입력 전");
             const mockK = mockSource ? kpi("국수탐 백분위", st.pAvg.toFixed(1), `국${st.kor} 수${st.math} 영${st.eng} 탐${st.t1}/${st.t2}${st.nsu ? " · N수 가정 반영" : ""}`) : kpi("국수탐 백분위", "—", "모의고사 입력 전");
             let susiHtml = `<div class="hero-empty">내신을 입력하면 수시 6장이 나옵니다.</div>`, susiCnt = "";
             if (gpaSource !== null) {
@@ -6003,7 +5994,7 @@
         function hopeGet() {
             let ls = {}; try { ls = JSON.parse(localStorage.getItem(HOPE_LS + "|" + HS_LS_KEY) || "{}"); } catch (e) { ls = {}; }
             const a = (typeof aptState !== "undefined" && aptState) ? aptState : {};
-            return { hopeUniv: a.hopeUniv || ls.hopeUniv || "", hopeDept: a.hopeDept || ls.hopeDept || "" };
+            return { hopeUniv: a.hopeUniv || ls.hopeUniv || "", hopeDept: a.hopeDept || ls.hopeDept || "", hopeMax: [3, 4, 5, 6].includes(Number(ls.hopeMax)) ? Number(ls.hopeMax) : HOPE_MAX };
         }
         function hopeSet(k, v) {
             const val = String(v || "").trim().slice(0, k === "hopeUniv" ? 60 : 40);
@@ -6014,7 +6005,30 @@
             if (typeof hsScheduleSave === "function") hsScheduleSave();
             recalcAll();
         }
+        let hopeBypass = false;
+        function hopeApply() {
+            const u = document.getElementById("hope-univ"), d = document.getElementById("hope-dept");
+            const uv = String(u ? u.value : "").trim().slice(0, 60), dv = String(d ? d.value : "").trim().slice(0, 40);
+            if (typeof aptState !== "undefined" && aptState) { aptState.hopeUniv = uv; aptState.hopeDept = dv; }
+            ["apt-hope-univ", "apt-hope-dept"].forEach((id, i) => { const e = document.getElementById(id); if (e) e.value = i ? dv : uv; });
+            try { localStorage.setItem(HOPE_LS + "|" + (typeof HS_LS_KEY !== "undefined" ? HS_LS_KEY : ""), JSON.stringify({ hopeUniv: uv, hopeDept: dv, hopeMax: hopeGet().hopeMax })); } catch (e) { /* 저장 불가 */ }
+            if (typeof hsScheduleSave === "function") hsScheduleSave();
+            recalcAll();
+            const out = document.getElementById("hope-bar");
+            if (out && out.scrollIntoView) out.scrollIntoView({ behavior: "smooth", block: "start" });
+            showToast(uv || dv ? "⭐ 희망 대학·학과를 반영했습니다 — 아래에서 비교를 확인하세요." : "희망 대학·학과를 비웠습니다.");
+        }
+        function hopeSetMax(v) {
+            const cur = hopeGet(); cur.hopeMax = [3, 4, 5, 6].includes(Number(v)) ? Number(v) : HOPE_MAX;
+            try { localStorage.setItem(HOPE_LS + "|" + (typeof HS_LS_KEY !== "undefined" ? HS_LS_KEY : ""), JSON.stringify(cur)); } catch (e) { /* 저장 불가 */ }
+            recalcAll();
+        }
+        function hopeClear() {
+            ["hope-univ", "hope-dept"].forEach(id => { const e = document.getElementById(id); if (e) e.value = ""; });
+            hopeApply();
+        }
         function hopeParse() {
+            if (hopeBypass) return { univs: [], depts: [], active: false };
             const h = hopeGet();
             const univs = String(h.hopeUniv).split(/[,·\/\s]+/).map(x => x.trim().replace(/학교$/, "")).filter(Boolean).map(x => UNIV_ALIAS[x] || x);
             const depts = String(h.hopeDept).split(/[,·\/\s]+/).map(x => x.trim().replace(/(학과|학부|전공|과)$/, "")).filter(x => x.length >= 2);
@@ -6113,16 +6127,19 @@
                 const t = f.tier in need ? f.tier : "reach"; need[t]--;
             });
             // 추천 카드가 한 구간을 넘치게 채우면 나머지 구간에서 줄임(소신→적정→안정 순으로 흡수)
-            // ① 희망 대학·학과 먼저 (최저 충족 · 적합도 35 이상, 최대 4장, 그 안에서도 소신·적정·안정을 섞음)
+            // ① 희망 대학·학과 먼저 (최저 충족 · 적합도 35 이상 · 학생이 정한 최대 장수)
+            //    1단계: 희망 대학마다 가장 유리한(적합도 높은) 전형 1장 → 2단계: 중복지원이 되는 같은 대학의 다른 전형을 추가
+            //    (서울대 1개 전형만 · 연세대 추천형↔종합인재 불가 · 같은 대학 같은 전형 2개 불가 규칙은 그대로)
             const hp = hopeParse(), hopeIds = new Set();
             if (hp.active) {
-                const before = picked.length, cap = Math.min(HOPE_MAX, 6 - before), left = () => cap - (picked.length - before);
+                const before = picked.length, cap = Math.min(hopeGet().hopeMax, 6 - before), left = () => cap - (picked.length - before);
                 const hv = evalList.filter(x => hopeMatch(x, hp) && x.csat.pass && x.prob >= 35);
-                const band = (t) => hv.filter(x => t === "reach" ? x.prob < 66 : (t === "target" ? x.prob >= 66 && x.prob < 82 : x.prob >= 82))
-                    .sort((a, b) => hopeRank(a, hp) - hopeRank(b, hp) || rankScore(a, t === "reach" ? 58 : (t === "target" ? idealTargetProb : idealSafeProb), 0.5) - rankScore(b, t === "reach" ? 58 : (t === "target" ? idealTargetProb : idealSafeProb), 0.5));
+                const best = (u) => Math.max.apply(null, hv.filter(x => x.univ === u).map(x => x.prob));
+                const units = [...new Set(hv.map(x => x.univ))].sort((a, b) => hopeRank({ univ: a }, hp) - hopeRank({ univ: b }, hp) || best(b) - best(a));
+                const ofU = (u) => hv.filter(x => x.univ === u).sort((a, b) => b.prob - a.prob || a.cut2028_5g - b.cut2028_5g);
                 const ids0 = new Set(picked.map(p => p.id));
-                pickFrom(band("reach"), Math.min(2, left())); pickFrom(band("target"), Math.min(2, left())); pickFrom(band("safe"), Math.min(2, left()));
-                if (left() > 0) pickFrom(hv.slice().sort((a, b) => hopeRank(a, hp) - hopeRank(b, hp) || b.prob - a.prob), left());
+                for (const u of units) { if (left() <= 0) break; pickFrom(ofU(u), 1, false); }
+                for (const u of units) { if (left() <= 0) break; pickFrom(ofU(u), left(), true); }
                 picked.forEach(p => { if (!ids0.has(p.id)) { hopeIds.add(p.id); const t = p.prob < 66 ? "reach" : (p.prob < 82 ? "target" : "safe"); need[t]--; } });
             }
             let over = ["reach", "target", "safe"].reduce((a, k) => a + Math.max(0, -need[k]), 0);
@@ -6284,21 +6301,44 @@
             if (ui && document.activeElement !== ui) ui.value = h.hopeUniv; if (di && document.activeElement !== di) di.value = h.hopeDept;
             if (!out) return;
             const hp = hopeParse();
-            const order = `추천 순서: <strong>① 희망 대학·학과</strong>(최대 ${HOPE_MAX}장) → <strong>② 성적</strong>에 맞는 곳으로 나머지 → <strong>③</strong> 같은 성적 조건이면 <strong>세특</strong>이 맞는 계열을 먼저${(typeof skLast !== "undefined" && skLast) ? "" : " (세특을 분석하면 적용)"}.`;
-            if (!hp.active) { out.innerHTML = order + " 희망 대학이나 학과를 넣으면 그곳부터 6장에 넣습니다."; return; }
-            const picks = getPickedSusi6(evalList, st), pid = new Set(picks.filter(p => p.hopePick).map(p => p.id));
-            const ro = recOptsGlobal();
-            const rows = evalList.filter(x => hopeMatch(x, hp)).sort((a, b) => hopeRank(a, hp) - hopeRank(b, hp) || b.prob - a.prob).slice(0, 10).map(x => {
-                const nm = `${escapeHtmlDD(x.univ)} ${escapeHtmlDD(String(x.dept).split(" / ")[0])} <small>${escapeHtmlDD(String(x.type).replace(/^학생부/, ""))}</small>`;
-                let why;
-                if (pid.has(x.id)) why = `<span style="color:#34d399;">✅ 6장에 포함 (${TIER_KO[x.tier] || "상향"} ${x.prob})</span>${x.isOverqualified ? ' <span style="color:#fbbf24;">· 성적보다 많이 낮은 곳(하향) — 합격하면 정시를 못 쓰니 꼭 가고 싶은 곳인지 확인</span>' : ""}`;
-                else if (ro && ro.exclude && ro.exclude(x)) why = "⛔ 학교장 추천이 필요한 전형 (추천 선택에서 '받음'으로 체크하면 포함)";
-                else if (!x.csat.pass) why = `⚠️ 지금 모의고사로는 수능최저 미달 (${escapeHtmlDD(x.csat.desc || "")})`;
-                else if (x.prob < 35) why = `⚠️ 적합도 ${x.prob} — 성적으로는 합격 가능성이 매우 낮아 자동으로 넣지 않음`;
-                else why = `적합도 ${x.prob} — 한 대학 1장 규칙이나 희망 카드 ${HOPE_MAX}장 한도로 빠짐`;
-                return `<li>${nm}: ${why}</li>`;
-            });
-            out.innerHTML = order + (rows.length ? `<ul style="margin:4px 0 0 16px; padding:0; color:#cbd5e1;">${rows.join("")}</ul>` : ` <span style="color:#fbbf24;">지금 고른 계열·자료에 맞는 모집단위가 없습니다 — 학과 이름을 줄여 보세요(예: 정치외교학과 → 정치외교).</span>`);
+            const hmEl = document.getElementById("hope-max"); if (hmEl) hmEl.value = String(hopeGet().hopeMax);
+            const order = `<span style="color:#64748b;">추천 순서: ① 희망 대학·학과(최대 ${hopeGet().hopeMax}장 · 희망 대학마다 먼저 1장, 중복지원이 되면 같은 대학 다른 전형도 함께) → ② 성적에 맞는 곳으로 나머지 → ③ 같은 성적 조건이면 세특이 맞는 계열을 먼저${(typeof skLast !== "undefined" && skLast) ? "" : " (세특을 분석하면 적용)"}.</span>`;
+            if (!hp.active) { out.innerHTML = order + "<br>가고 싶은 대학이나 학과를 넣고 <strong>[⭐ 적용하고 비교 보기]</strong>를 누르세요(Enter 키도 됩니다)."; return; }
+            if (!evalList) { out.innerHTML = order + `<br><span style="color:#b45309;">내신을 입력하면(성적표 올리기 또는 왼쪽 내신 칸) 희망 대학·학과의 합격선 비교가 나옵니다.</span>`; return; }
+            const picks = getPickedSusi6(evalList, st);
+            hopeBypass = true; let base; try { base = getPickedSusi6(evalList, st); } finally { hopeBypass = false; }
+            const pid = new Set(picks.filter(p => p.hopePick).map(p => p.id)), ro = recOptsGlobal();
+            const all = evalList.filter(x => hopeMatch(x, hp)).sort((a, b) => hopeRank(a, hp) - hopeRank(b, hp) || b.prob - a.prob);
+            if (!all.length) { out.innerHTML = order + `<br><span style="color:#b45309;">지금 고른 계열·자료에 '${escapeHtmlDD(h.hopeUniv)} ${escapeHtmlDD(h.hopeDept)}'에 맞는 모집단위가 없습니다. 학과 이름을 줄이거나(정치외교학과 → 정치외교) 위쪽 계열 버튼을 [전체 계열]로 바꿔 보세요.</span>`; return; }
+            const tierCol = { safe: "#059669", target: "#0284c7", reach: "#d97706", impossible: "#dc2626" };
+            const rows = all.slice(0, 12).map(x => {
+                const gap = x.cut70_5g - x.effUnivGpa, inP = pid.has(x.id) || picks.some(p => p.id === x.id);
+                let state;
+                if (inP) state = `<span style="color:#059669; font-weight:800;">✅ 포함</span>`;
+                else if (ro && ro.exclude && ro.exclude(x)) state = `<span style="color:#64748b;">⛔ 추천 필요</span>`;
+                else if (!x.csat.pass) state = `<span style="color:#dc2626;">⚠️ 최저 미달</span>`;
+                else if (x.prob < 35) state = `<span style="color:#dc2626;">가능성 매우 낮음</span>`;
+                else if (x.univ === "서울대" && picks.some(p => p.univ === "서울대")) state = `<span style="color:#64748b;">서울대는 수시 1개 전형만</span>`;
+                else if (x.univ === "연세대" && picks.some(p => p.univ === "연세대" && ((/추천형/.test(p.type) && /종합인재/.test(x.type)) || (/종합인재/.test(p.type) && /추천형/.test(x.type))))) state = `<span style="color:#64748b;">추천형↔종합인재 중복지원 불가</span>`;
+                else state = `<span style="color:#64748b;">희망 카드 ${hopeGet().hopeMax}장 한도로 빠짐 — 위에서 최대 장수를 늘리면 들어옴</span>`;
+                const gapTxt = gap >= 0 ? `<span style="color:#059669;">컷보다 ${gap.toFixed(3)} 안쪽</span>` : `<span style="color:#dc2626;">컷까지 ${(-gap).toFixed(3)} 부족</span>`;
+                const csat = !x.csatRule || x.csatRule === "NONE" ? "없음" : (x.csat.pass ? "충족" : "미달");
+                return `<tr${inP ? ' style="background:rgba(245,158,11,.10);"' : ""}><td style="text-align:left;"><strong>${escapeHtmlDD(x.univ)}</strong> ${escapeHtmlDD(String(x.dept).split(" / ")[0])}<br><small style="color:#64748b;">${escapeHtmlDD(String(x.type).replace(/^학생부/, ""))}</small></td><td>${x.cut70_5g.toFixed(2)}</td><td>${x.effUnivGpa.toFixed(3)}</td><td>${gapTxt}</td><td><strong style="color:${tierCol[x.tier] || "#64748b"};">${x.prob}</strong> <small>${TIER_KO[x.tier] || "어려움"}</small></td><td>${csat}</td><td>${state}</td></tr>`;
+            }).join("");
+            const bIds = new Set(base.map(p => p.id)), aIds = new Set(picks.map(p => p.id));
+            const added = picks.filter(p => !bIds.has(p.id)), removed = base.filter(p => !aIds.has(p.id));
+            const nm = (p) => `${escapeHtmlDD(p.univ)} ${escapeHtmlDD(String(p.dept).replace(/\s*\(.*$/, "").split(" / ")[0])} <small>${escapeHtmlDD(String(p.type).replace(/^학생부/, ""))}</small>(${p.prob})`;
+            const cmp = added.length || removed.length
+                ? `<div style="margin-top:8px; padding:8px 10px; border-radius:8px; background:rgba(245,158,11,.08); border:1px solid #f59e0b55;"><strong>6장이 이렇게 바뀌었습니다</strong><br>${added.map(p => `➕ <span style="color:#059669;">${nm(p)}</span>`).join(" · ")}${added.length && removed.length ? "<br>" : ""}${removed.map(p => `➖ <span style="color:#dc2626;">${nm(p)}</span>`).join(" · ")}</div>`
+                : `<div style="margin-top:8px; color:#059669;">희망 대학·학과가 이미 성적 기준 6장에 들어 있어 6장은 그대로입니다.</div>`;
+            // 한 줄 판단
+            const okN = all.filter(x => x.csat.pass && x.prob >= 66).length, inN = all.filter(x => picks.some(p => p.id === x.id)).length, best = all.filter(x => x.csat.pass).sort((a, b) => b.prob - a.prob)[0];
+            const verdict = inN ? `희망 ${all.length}곳 중 <strong>${inN}곳</strong>을 6장에 넣었습니다. 적정 이상(적합도 66↑) ${okN}곳${best ? ` · 가장 유리한 곳은 <strong>${nm(best)}</strong>` : ""}.`
+                : `희망 대학·학과 중 지금 6장에 넣을 만한 곳이 없습니다${best ? ` (가장 가까운 곳: ${nm(best)})` : ""}. 아래 표의 '컷까지 부족' 폭만큼 내신을 올리거나 수능최저를 맞추면 들어옵니다.`;
+            out.innerHTML = order + `<div style="margin-top:6px; font-size:13px; color:#1e293b;">${verdict}</div>
+                <div style="overflow-x:auto; margin-top:6px;"><table class="univ-table" style="min-width:560px; font-size:12px;"><thead><tr><th>희망 대학·학과·전형</th><th>70%컷</th><th>내 실질</th><th>차이</th><th>적합도</th><th>수능최저</th><th>6장</th></tr></thead><tbody>${rows}</tbody></table></div>
+                ${all.length > 12 ? `<div style="color:#64748b;">맞는 모집단위 ${all.length}곳 중 12곳만 표시 — 대학이나 학과를 더 좁혀 보세요.</div>` : ""}
+                ${cmp}`;
         }
         function renderRecScenarios(evalList, st) {
             renderHopeBar(evalList, st);
@@ -6417,7 +6457,7 @@
                         <div class="prob-bar-container"><div class="prob-bar-fill" style="width:${item.prob}%; background:${barColor};"></div></div>
                         <div class="c2-facts">
                             <div><span>70%컷</span><strong>${item.cut70_5g.toFixed(2)}</strong></div>
-                            <div><span>내 실질</span><strong>${item.effUnivGpa.toFixed(2)}</strong></div>
+                            <div><span>내 실질</span><strong>${item.effUnivGpa.toFixed(3)}</strong></div>
                             <div><span>수능최저</span><strong class="${item.csat.pass ? (item.csat.unknown ? "c2-warn" : "") : "c2-bad"}">${!item.csatRule || item.csatRule === "NONE" ? "없음" : (item.csat.unknown ? "미확인" : (item.csat.pass ? "충족" : "미달"))}</strong></div>
                         </div>
                         <details class="c2-more" open><summary>근거</summary>
@@ -6429,7 +6469,7 @@
                             </div>
                             ${renderKanBarHTML(item.kan, item.csat.pass, "9단계 안정도")}
                             <ul class="card-metric-list">
-                                <li><strong>산출식:</strong> ${item.formulaName}${item.usedTopN ? ` [실질 ${item.effUnivGpa.toFixed(2)}등급]` : ''}</li>
+                                <li><strong>산출식:</strong> ${item.formulaName}${item.usedTopN ? ` [실질 ${item.effUnivGpa.toFixed(3)}등급]` : ''}</li>
                                 <li><strong>수능최저:</strong> ${item.csat.desc}</li>
                                 <li><strong>전략 포인트:</strong> ${noteFor(item.note, "susi")}</li>
                             </ul>
@@ -6531,11 +6571,11 @@
                 prevEnd = end;
             });
             segs.push(`<div style="flex:1; background:#334155; color:#94a3b8;">${100 - pos(prevEnd) > 9 ? "어려움" : ""}</div>`);
-            const strip = `<div class="dd-strip">${segs.join("")}<div class="dd-marker" style="left:calc(${pos(item.effUnivGpa)}% - 1px);"><span>내 내신 ${item.effUnivGpa.toFixed(2)}</span></div></div>
+            const strip = `<div class="dd-strip">${segs.join("")}<div class="dd-marker" style="left:calc(${pos(item.effUnivGpa)}% - 1px);"><span>내 내신 ${item.effUnivGpa.toFixed(3)}</span></div></div>
                 <div class="dd-axis"><span>1.00</span><span>${((lo + hi) / 2).toFixed(2)}</span><span>${hi.toFixed(2)}</span></div>`;
 
             const scRows = sc.map((x, i) => `<tr class="${i === 1 ? "cur" : ""}"><td><strong>${x.label}</strong><br><span style="font-size:12px; color:#94a3b8;">${x.desc}</span></td>
-                <td>${x.cut5.toFixed(2)}</td><td>${ddSign(x.cut5 - item.effUnivGpa)}</td><td>${st.gpa.toFixed(2)} → ${x.conv9.toFixed(2)}</td>
+                <td>${x.cut5.toFixed(2)}</td><td>${ddSign(x.cut5 - item.effUnivGpa)}</td><td>${st.gpa.toFixed(3)} → ${x.conv9.toFixed(2)}</td>
                 <td class="t-${x.it.tier}"><strong>${TIER_KO[x.it.tier]}</strong><br>${x.it.prob} · ${x.it.kan}칸</td></tr>`).join("");
 
             const csTxt = cs.none ? "수능최저 없음 — 내신·서류로만 판정됩니다."
@@ -6548,7 +6588,7 @@
                 <div class="dd-sec">
                     <h4>① 합격 근거 — 내신과 합격선</h4>
                     <div class="dd-grid">
-                        <div class="dd-kv"><div class="k">내 내신 (대학 반영방식)</div><div class="v">${item.effUnivGpa.toFixed(2)}</div><div class="s">${item.usedTopN ? `상위 ${item.usedTopN}과목 반영` : "전 과목 학점가중"} · ${escapeHtmlDD(spec.formulaName)}</div></div>
+                        <div class="dd-kv"><div class="k">내 내신 (대학 반영방식)</div><div class="v">${item.effUnivGpa.toFixed(3)}</div><div class="s">${item.usedTopN ? `상위 ${item.usedTopN}과목 반영` : "전 과목 학점가중"} · ${escapeHtmlDD(spec.formulaName)}</div></div>
                         <div class="dd-kv"><div class="k">2028 추정 70%컷 (최종합)</div><div class="v">${item.cut70_5g.toFixed(2)}</div><div class="s">여유 <strong class="${gapCut >= 0 ? "t-safe" : "t-reach"}">${ddSign(gapCut)}</strong> (+면 컷 안쪽)</div></div>
                         <div class="dd-kv"><div class="k">2028 추정 50%컷 (최초합)</div><div class="v">${item.cut50_5g.toFixed(2)}</div><div class="s">여유 <strong class="${gap50 >= 0 ? "t-safe" : "t-reach"}">${ddSign(gap50)}</strong></div></div>
                         <div class="dd-kv"><div class="k">원자료: 2027 어디가 70%컷</div><div class="v">${item.cut2027_9g.toFixed(2)}</div><div class="s">9등급 · 예상 충원율 ${item.replRate}%</div></div>
@@ -6613,7 +6653,7 @@
             if (!u) return;
             const item = evaluateUniversityItem(u, st);
             const ov = document.getElementById("dd-overlay");
-            document.getElementById("dd-title").innerHTML = `🔎 ${escapeHtmlDD(item.univ)} · ${escapeHtmlDD(item.dept)}<small>${escapeHtmlDD(item.type)} · ${currentStudentName ? escapeHtmlDD(currentStudentName) + " 학생 · " : ""}내신 ${st.gpa.toFixed(2)}</small>`;
+            document.getElementById("dd-title").innerHTML = `🔎 ${escapeHtmlDD(item.univ)} · ${escapeHtmlDD(item.dept)}<small>${escapeHtmlDD(item.type)} · ${currentStudentName ? escapeHtmlDD(currentStudentName) + " 학생 · " : ""}내신 ${st.gpa.toFixed(3)}</small>`;
             document.getElementById("dd-body").innerHTML = buildDeptDetailHTML(item, st);
             ddLastFocus = document.activeElement;
             ov.hidden = false;
@@ -7480,8 +7520,8 @@
             const zA = zAverage(studentSubjects);
             const avgZ = zA.avg;
 
-            document.getElementById("input-gpa").value = avgGpa.toFixed(2);
-            document.getElementById("input-gpa-num").value = avgGpa.toFixed(2);
+            document.getElementById("input-gpa").value = avgGpa.toFixed(3);
+            document.getElementById("input-gpa-num").value = avgGpa.toFixed(3);
             // 학업역량(자체 지표): Z가 계산된 과목이 있을 때만. 세특 분석·직접 조정 값이 있으면 덮어쓰지 않음
             const acadScore = avgZ === null ? null : Math.max(2.5, Math.min(5.0, 3.2 + avgZ * 0.78));
             if (acadScore !== null && qualSrc.acad !== "sk" && qualSrc.acad !== "manual") {
@@ -8854,29 +8894,30 @@ ${r.clean.slice(0, 14000)}`;
         function syncGpaFromRange(v) {
             hasActiveScore = true; gpaSource = studentSubjects.length ? "file" : "manual";
             const val = parseFloat(v || document.getElementById('input-gpa').value);
-            document.getElementById('input-gpa-num').value = val.toFixed(2);
+            document.getElementById('input-gpa-num').value = val.toFixed(3);
             recalcAll();
         }
         function syncGpaFromNum(v) {
             hasActiveScore = true; gpaSource = studentSubjects.length ? "file" : "manual";
             let val = parseFloat(v || document.getElementById('input-gpa-num').value);
             if (isNaN(val)) val = 1.50;
-            val = Math.max(1.00, Math.min(5.00, val));
+            val = Math.round(Math.max(1.00, Math.min(5.00, val)) * 1000) / 1000;   // 소수점 셋째 자리까지
             document.getElementById('input-gpa').value = val;
+            document.getElementById('input-gpa-num').value = val.toFixed(3);
             recalcAll();
         }
         function stepGpa(delta) {
             hasActiveScore = true; gpaSource = studentSubjects.length ? "file" : "manual";
             let val = parseFloat(document.getElementById('input-gpa').value) + delta;
             val = Math.max(1.00, Math.min(4.50, val));
-            document.getElementById('input-gpa').value = val.toFixed(2);
-            document.getElementById('input-gpa-num').value = val.toFixed(2);
+            document.getElementById('input-gpa').value = val.toFixed(3);
+            document.getElementById('input-gpa-num').value = val.toFixed(3);
             recalcAll();
         }
         function setGpaExact(exactVal) {
             hasActiveScore = true; gpaSource = studentSubjects.length ? "file" : "manual";
-            document.getElementById('input-gpa').value = exactVal.toFixed(2);
-            document.getElementById('input-gpa-num').value = exactVal.toFixed(2);
+            document.getElementById('input-gpa').value = exactVal.toFixed(3);
+            document.getElementById('input-gpa-num').value = exactVal.toFixed(3);
             recalcAll();
         }
 
@@ -8910,7 +8951,7 @@ ${r.clean.slice(0, 14000)}`;
             const prompt = `[TOTAL CODEX 2028 수시·정시 대입 진단 리포트]
 • 분석 학생: ${currentStudentName || '학생'}${currentSchoolName ? ' (' + currentSchoolName + ')' : ''}
 • 희망 계열: ${TRACK_NAMES[currentTrack] || currentTrack}
-• [수시 내신 지표] 5등급제 누적 내신: ${st.gpa.toFixed(2)}등급 (9등급제 추정 환산: ${st.conv9.toFixed(2)}등급 · 입력 과목 ${studentSubjects.length}개)
+• [수시 내신 지표] 5등급제 누적 내신: ${st.gpa.toFixed(3)}등급 (9등급제 추정 환산: ${st.conv9.toFixed(2)}등급 · 입력 과목 ${studentSubjects.length}개)
 • [학종 3대 역량] 학업역량: ${qualSrc.acad ? st.acad.toFixed(1) : "미평가"} / 진로역량: ${qualSrc.career ? st.career.toFixed(1) : "미평가"} / 공동체역량: ${qualSrc.comm ? st.comm.toFixed(1) : "미평가"}
 • [수능/모평 등급] 국${st.kor} · 수${st.math} · 영${st.eng} · 탐1(${st.t1}) · 탐2(${st.t2}) · 한${st.hist}
 • [정시 백분위] 국수탐 평균 백분위: ${st.pAvg.toFixed(2)}% (국어 ${st.pKor}%, 수학 ${st.pMath}%, 탐구1 ${st.pTam1}%, 탐구2 ${st.pTam2}%)
@@ -9127,7 +9168,7 @@ ${r.clean.slice(0, 14000)}`;
                         </div>
                         <div class="print-summary-cell">
                             <div class="p-label">5등급제 내신 (9등급제 환산)</div>
-                            <div class="p-val">${st.gpa.toFixed(2)} 등급 <span style="font-size:12px; color:#475569;">(9등급 ${st.conv9.toFixed(2)})</span><br><span style="font-size:12px; color:#059669;">평균 Z점수: ${avgZStr}</span></div>
+                            <div class="p-val">${st.gpa.toFixed(3)} 등급 <span style="font-size:12px; color:#475569;">(9등급 ${st.conv9.toFixed(2)})</span><br><span style="font-size:12px; color:#059669;">평균 Z점수: ${avgZStr}</span></div>
                         </div>
                         <div class="print-summary-cell">
                             <div class="p-label">학종 3대 역량 (세특 분석)</div>
@@ -9141,7 +9182,7 @@ ${r.clean.slice(0, 14000)}`;
 
                     <div style="border:1.5px solid #0284c7; border-radius:6px; padding:9px 12px; background:#f0f9ff; font-size:12px; line-height:1.55; margin-bottom:12px; color:#0f172a;">
                         <div style="font-weight:900; color:#0369a1; font-size:12px; margin-bottom:4px;">🔍 맞춤형 대입 진단 브리핑 (전형요소 + 자체 추정 모형 요약)</div>
-                        <div>• <strong>[수시·정시 포지션]:</strong> 내신 <strong>${st.gpa.toFixed(2)}등급(9등급 환산 ${st.conv9.toFixed(2)})</strong> vs 정시 국수탐 평균백분위 <strong>${st.pAvg.toFixed(2)}%</strong> | 학종 3대 역량 평균 <strong>${st.qualAvg.toFixed(2)}/5.0</strong></div>
+                        <div>• <strong>[수시·정시 포지션]:</strong> 내신 <strong>${st.gpa.toFixed(3)}등급(9등급 환산 ${st.conv9.toFixed(2)})</strong> vs 정시 국수탐 평균백분위 <strong>${st.pAvg.toFixed(2)}%</strong> | 학종 3대 역량 평균 <strong>${st.qualAvg.toFixed(2)}/5.0</strong></div>
                         <div>• <strong>[대학별 내신 배점표 적용]:</strong> 대학별 2028 공식 5등급제 등급배점(고대 100/95/83/67/40, 연대 석차70+성취도30, 서강대 80+10+10, 성대 정량70+정성30, 한양대 교과60+학종40, 동국대·가천대 상위10과목, 건국대 상위20과목 등) 1:1 수식 반영</div>
                         <div>• <strong>[수능최저 &amp; 정시 영어감점 검증]:</strong> 수학 필수 포함 최저(연대 자연·한양대 상경/자연·지거국 의대), 탐구 2개 개별 영역 인정(성균관대 5영역 3합), 통합과학 특례(중앙대 인문), 한국사 포함 5영역(건국대 3합8) 및 정시 대학별 영어 ${st.eng}등급 실제 감점표 적용 완료</div>
                     </div>
