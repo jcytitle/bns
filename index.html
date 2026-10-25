@@ -1,5 +1,10 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Go to Dream</title>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Go to Dream</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
     <style>
@@ -1814,8 +1819,8 @@
   .rec-pill.on { border-color:#6d28d9; background:#6d28d9 !important; color:#fff !important; }
   .rec-pill.on::before { content:"☑ "; }
   </style>
-
-
+</head>
+<body>
 
 
 
@@ -5678,7 +5683,7 @@
             const areas = [...document.querySelectorAll(".apt-area:checked")].map(x => x.value).slice(0, 5);
             const prev = aptState || {}, sameScores = prev.srcScores && RIASEC.every(([c]) => Number(prev.srcScores[c]) === Number(scores[c]));
             aptState = { scores, areas, hopeTrack: g("apt-hope-track"), hopeDept: dStr(g("apt-hope-dept"), 40), hopeUniv: dStr(g("apt-hope-univ"), 60), test: dStr(g("apt-test"), 60), date: normDateCell(g("apt-date")) };
-            if (sameScores) { aptState.majorFits = prev.majorFits; aptState.lean = prev.lean; aptState.srcScores = prev.srcScores; ["aptTarget", "aptJob", "aptComp", "aptTop", "aptName"].forEach(k => { if (prev[k] != null) aptState[k] = prev[k]; }); }
+            if (sameScores) { aptState.majorFits = prev.majorFits; aptState.lean = prev.lean; aptState.srcScores = prev.srcScores; ["aptTarget", "aptJob", "aptComp", "aptTop", "aptName", "aptDiff"].forEach(k => { if (prev[k] != null) aptState[k] = prev[k]; }); }
         }
         function aptWrite() {
             const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v == null ? "" : v; };
@@ -5718,7 +5723,7 @@
                 scores, mf, lean, comp: Object.keys(comp).length ? comp : null,
                 name: String(st.rawName || st.name || "").trim(), code: String(p.riasec.code3Ko || p.riasec.code2Ko || ""),
                 date: String(p.updatedAt || "").slice(0, 10), target: String(L.targetMajorName || ""), targetTrack: String(L.primaryTrack || ""),
-                job: p.recommendedJob && p.recommendedJob.n ? String(p.recommendedJob.n) : "",
+                job: p.recommendedJob && p.recommendedJob.n ? String(p.recommendedJob.n) : "", diff: Number(p.riasec.differentiation),
                 top: (Array.isArray(L.top5Majors) ? L.top5Majors : []).slice(0, 5).map(m => ({ name: String(m.name || ""), fit: Number(m.fit) || 0 }))
             };
         }
@@ -5732,7 +5737,7 @@
             aptState = Object.assign({}, aptState, {
                 scores: b.scores, areas: [], test: dStr("통합 진로·적성 진단" + (b.code ? " · " + b.code : ""), 60), date: normDateCell(b.date),
                 majorFits: Object.keys(b.mf).length ? b.mf : null, lean: b.lean, srcScores: Object.assign({}, b.scores),
-                aptTarget: b.target ? { name: dStr(b.target, 40), track: b.targetTrack } : null, aptJob: dStr(b.job, 40), aptComp: b.comp, aptTop: b.top, aptName: dStr(b.name, 20)
+                aptTarget: b.target ? { name: dStr(b.target, 40), track: b.targetTrack } : null, aptJob: dStr(b.job, 40), aptComp: b.comp, aptTop: b.top, aptName: dStr(b.name, 20), aptDiff: isFinite(b.diff) ? b.diff : null
             });
             aptWrite(); renderAptitude();
             if (typeof hsScheduleSave === "function") hsScheduleSave();
@@ -5767,6 +5772,7 @@
             const card = document.createElement("div");
             card.id = "apt-bridge-card"; card.className = "apt-card";
             card.innerHTML = `<h3>🔗 적성검사 사이트에서 가져온 정보 <small>${escapeHtmlDD(aptState.aptName || "")} · ${escapeHtmlDD(aptState.date || "")}</small></h3>
+                ${aptState.aptDiff != null && aptState.aptDiff < 10 ? `<p class="apt-p" style="color:#b91c1c; font-weight:800;">⚠️ 이 적성검사는 여섯 유형 점수 차이가 ${aptState.aptDiff}점뿐이라 흥미 유형 판정이 약합니다. 아래 계열 적성·학과 추천은 참고만 하세요.</p>` : ""}
                 ${t ? `<p class="apt-p">적성검사에서 정한 목표 학과: <strong>${escapeHtmlDD(t.name)}</strong> <button type="button" class="btn" onclick="aptHopeFromTarget()" style="padding:3px 10px; font-size:12px;">⭐ 수시 '희망 학과'로 넣기</button></p>` : ""}
                 ${aptState.aptTop && aptState.aptTop.length ? `<p class="apt-p">적성 상위 학과: ${aptState.aptTop.map(m => `${escapeHtmlDD(m.name)} ${m.fit}%`).join(" · ")}</p>` : ""}
                 ${aptState.aptJob ? `<p class="apt-p">추천 직업 1위: ${escapeHtmlDD(aptState.aptJob)}</p>` : ""}
@@ -9511,5 +9517,5 @@ ${r.clean.slice(0, 14000)}`;
         });
     </script>
 <datalist id="finder-list"></datalist>
-
-</body></html>
+</body>
+</html>
