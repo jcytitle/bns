@@ -2979,7 +2979,7 @@
                             <label><span>검사 이름</span><input type="text" id="apt-test" oninput="aptChanged()" placeholder="예: 커리어넷 직업흥미검사(H)"></label>
                             <label><span>검사일</span><input type="date" id="apt-date" onchange="aptChanged()"></label>
                         </div>
-                        <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;"><label class="btn file-upload-btn" style="font-weight:800;">적성검사 결과(.json) 불러오기<input type="file" accept=".json,application/json" onchange="aptImportFile(event)" style="display:none;"></label><button type="button" class="btn" onclick="aptClear()">입력 지우기</button><span style="font-size:12px; color:var(--muted);">별도 '진로 적성 진단' 프로그램에서 저장한 결과 파일을 올리면 아래 칸이 자동으로 채워집니다.</span></div>
+                        <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;"><a class="btn" href="../Aptitude-Test/" target="_blank" rel="noopener" style="font-weight:800; text-decoration:none;">🧭 적성검사 하러 가기</a><button type="button" class="btn" onclick="aptPullBridge()" style="font-weight:800; border-color:#7c3aed; color:#6d28d9;">🔗 이 기기의 최근 적성검사 결과 가져오기</button><label class="btn file-upload-btn" style="font-weight:800;">적성검사 결과 파일 불러오기(.json·.html)<input type="file" accept=".json,.html,.htm,application/json,text/html" onchange="aptImportFile(event)" style="display:none;"></label><button type="button" class="btn" onclick="aptClear()">입력 지우기</button><span style="font-size:12px; color:var(--muted);">별도 '진로 적성 진단' 프로그램에서 저장한 결과 파일을 올리면 아래 칸이 자동으로 채워집니다.</span></div>
                     </div>
                     <div id="apt-result"></div>
                 </div>
@@ -4881,6 +4881,7 @@
             hsReady = true;
             try { if (remember) localStorage.setItem(GTD_LAST, JSON.stringify({ name, fileId })); else localStorage.removeItem(GTD_LAST); } catch (e) { /* 무시 */ }
             gtdRenderPanel(); hsSetStatus(hsStatusText());
+            if (typeof aptAfterStudentOpen === "function") setTimeout(aptAfterStudentOpen, 50);
         }
         async function gtdLegacyState() {
             try {
@@ -5677,7 +5678,7 @@
             const areas = [...document.querySelectorAll(".apt-area:checked")].map(x => x.value).slice(0, 5);
             const prev = aptState || {}, sameScores = prev.srcScores && RIASEC.every(([c]) => Number(prev.srcScores[c]) === Number(scores[c]));
             aptState = { scores, areas, hopeTrack: g("apt-hope-track"), hopeDept: dStr(g("apt-hope-dept"), 40), hopeUniv: dStr(g("apt-hope-univ"), 60), test: dStr(g("apt-test"), 60), date: normDateCell(g("apt-date")) };
-            if (sameScores) { aptState.majorFits = prev.majorFits; aptState.lean = prev.lean; aptState.srcScores = prev.srcScores; }
+            if (sameScores) { aptState.majorFits = prev.majorFits; aptState.lean = prev.lean; aptState.srcScores = prev.srcScores; ["aptTarget", "aptJob", "aptComp", "aptTop", "aptName"].forEach(k => { if (prev[k] != null) aptState[k] = prev[k]; }); }
         }
         function aptWrite() {
             const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v == null ? "" : v; };
@@ -5689,10 +5690,98 @@
             aptRead(); renderAptitude();
             if (typeof hsScheduleSave === "function") hsScheduleSave();
         }
+
+        // ───────── 적성검사(jcytitle.github.io/Aptitude-Test) 연결 ─────────
+        // 세 사이트가 같은 주소(jcytitle.github.io) 아래라 같은 기기에서는 브라우저 저장 공간을 함께 씀:
+        // 적성검사가 저장한 결과(CODEX2028_APTITUDE_BRIDGE_v1)를 그대로 읽음. 다른 기기는 결과 파일(.json·.html)로 불러옴.
+        // ※ 적성검사가 만든 '세특 형식 글'과 학종 3대 역량 값은 학생부가 아니므로 세특·학종 점수에는 넣지 않음
+        const APT_BRIDGE_KEY = "CODEX2028_APTITUDE_BRIDGE_v1", APT_BRIDGE_APP = "TOTAL_CODEX_2028_APTITUDE_BRIDGE";
+        let aptPendingBridge = false;
+        const APT_KEDI = { l: "협력적 소통", a: "지식정보처리", ac: "자기관리", r: "공동체", i: "창의적 사고", re: "심미적 감성" };
+        function aptFromBridge(p) {
+            if (!p || p.app !== APT_BRIDGE_APP || !p.riasec || !p.riasec.scores100) return null;
+            const scores = {};
+            RIASEC.forEach(([c]) => { const n = Number(p.riasec.scores100[c]); if (isFinite(n) && n >= 0 && n <= 100) scores[c] = Math.round(n); });
+            if (Object.keys(scores).length < 3) return null;
+            const L = p.codexLinkage || {}, st = p.student || {}, mf = {};
+            (Array.isArray(L.top5Majors) ? L.top5Majors : []).forEach(m => {
+                const f = Number(m && m.fit);
+                // '사범대학 (국어·영어·…)'처럼 괄호 속 예시는 빼고, '·'로 묶인 학과마다 따로 맞춤(괄호 속 과목명이 엉뚱한 학과에 붙지 않게)
+                const segs = String(m.name || "").replace(/\([^)]*\)/g, "").split("·").map(x => x.trim()).filter(Boolean);
+                if (isFinite(f)) APT_MAJOR_KW.forEach(([n, re]) => { if (segs.some(sg => re.test(sg))) mf[n] = Math.max(mf[n] || 0, Math.round(f)); });
+            });
+            const mun = Number(st.munPct), ee = Number(st.eePct);
+            const lean = isFinite(mun) && isFinite(ee) ? { label: mun - ee >= 12 ? "SOC" : (ee - mun >= 12 ? "SCI" : "MIX"), soc: mun, sci: ee, text: `문과 친화 ${mun}% · 이과 친화 ${ee}%` } : null;
+            const comp = {};
+            if (p.kediCompetencies && typeof p.kediCompetencies === "object") Object.keys(APT_KEDI).forEach(k => { const v = Number(p.kediCompetencies[k]); if (isFinite(v)) comp[k] = v; });
+            return {
+                scores, mf, lean, comp: Object.keys(comp).length ? comp : null,
+                name: String(st.rawName || st.name || "").trim(), code: String(p.riasec.code3Ko || p.riasec.code2Ko || ""),
+                date: String(p.updatedAt || "").slice(0, 10), target: String(L.targetMajorName || ""), targetTrack: String(L.primaryTrack || ""),
+                job: p.recommendedJob && p.recommendedJob.n ? String(p.recommendedJob.n) : "",
+                top: (Array.isArray(L.top5Majors) ? L.top5Majors : []).slice(0, 5).map(m => ({ name: String(m.name || ""), fit: Number(m.fit) || 0 }))
+            };
+        }
+        function aptApplyBridge(p) {
+            const b = aptFromBridge(p);
+            if (!b) { showToast("⚠️ 적성검사 결과 형식을 읽지 못했습니다."); return false; }
+            if (typeof gtd !== "undefined") {
+                if (!gtd) { aptPendingBridge = true; showToast("👤 먼저 학생을 열어 주세요 — 학생을 열면 적성검사 결과를 그 학생에게 넣습니다."); return false; }
+                if (b.name && gtdNorm(b.name) !== gtdNorm(gtd.name) && !window.confirm(`적성검사 학생 이름(${b.name})과 지금 열린 학생(${gtd.name})이 다릅니다.\n그래도 ${gtd.name} 학생에게 넣을까요?`)) return false;
+            }
+            aptState = Object.assign({}, aptState, {
+                scores: b.scores, areas: [], test: dStr("통합 진로·적성 진단" + (b.code ? " · " + b.code : ""), 60), date: normDateCell(b.date),
+                majorFits: Object.keys(b.mf).length ? b.mf : null, lean: b.lean, srcScores: Object.assign({}, b.scores),
+                aptTarget: b.target ? { name: dStr(b.target, 40), track: b.targetTrack } : null, aptJob: dStr(b.job, 40), aptComp: b.comp, aptTop: b.top, aptName: dStr(b.name, 20)
+            });
+            aptWrite(); renderAptitude();
+            if (typeof hsScheduleSave === "function") hsScheduleSave();
+            if (hasActiveScore) recalcAll();
+            gotoBoard("aptitude");
+            showToast(`🔗 적성검사 결과(${b.name || "이름 없음"} · ${b.code} · ${b.date})를 가져왔습니다. 세특·학종 역량 점수는 바꾸지 않습니다.`);
+            return true;
+        }
+        function aptPullBridge() {
+            let p = null; try { p = JSON.parse(localStorage.getItem(APT_BRIDGE_KEY) || "null"); } catch (e) { p = null; }
+            if (!p) { showToast("이 기기에 적성검사 결과가 없습니다. 적성검사 사이트에서 검사를 마친 뒤 [Go to Dream으로 보내기]를 누르거나, 결과 파일(.json·.html)을 불러오세요."); return false; }
+            return aptApplyBridge(p);
+        }
+        function aptAfterStudentOpen() { if (aptPendingBridge) { aptPendingBridge = false; aptPullBridge(); } }
+        function aptCheckUrl() {
+            if (!/[?&]apt=1\b/.test(location.search)) return;
+            try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) { /* 무시 */ }
+            if (typeof gtd !== "undefined" && !gtd) { aptPendingBridge = true; showToast("🔗 적성검사 결과가 도착했습니다 — 위에서 학생을 열면(또는 등록하면) 그 학생에게 넣습니다."); return; }
+            aptPullBridge();
+        }
+        function aptHopeFromTarget() {
+            const t = aptState.aptTarget; if (!t || !t.name) return;
+            const d = String(t.name).split(/[·(\/]/)[0].replace(/(학과|학부|학)$/, "").trim();
+            const el = document.getElementById("hope-dept"); if (el) el.value = d;
+            if (typeof hopeApply === "function") { gotoBoard("susi"); hopeApply(); }
+        }
+        function aptRenderBridgeCard() {
+            const box = document.getElementById("apt-result"); if (!box) return;
+            const old = document.getElementById("apt-bridge-card"); if (old) old.remove();
+            if (!(aptState.aptTarget || aptState.aptComp || aptState.aptJob)) return;
+            const c = aptState.aptComp, t = aptState.aptTarget;
+            const card = document.createElement("div");
+            card.id = "apt-bridge-card"; card.className = "apt-card";
+            card.innerHTML = `<h3>🔗 적성검사 사이트에서 가져온 정보 <small>${escapeHtmlDD(aptState.aptName || "")} · ${escapeHtmlDD(aptState.date || "")}</small></h3>
+                ${t ? `<p class="apt-p">적성검사에서 정한 목표 학과: <strong>${escapeHtmlDD(t.name)}</strong> <button type="button" class="btn" onclick="aptHopeFromTarget()" style="padding:3px 10px; font-size:12px;">⭐ 수시 '희망 학과'로 넣기</button></p>` : ""}
+                ${aptState.aptTop && aptState.aptTop.length ? `<p class="apt-p">적성 상위 학과: ${aptState.aptTop.map(m => `${escapeHtmlDD(m.name)} ${m.fit}%`).join(" · ")}</p>` : ""}
+                ${aptState.aptJob ? `<p class="apt-p">추천 직업 1위: ${escapeHtmlDD(aptState.aptJob)}</p>` : ""}
+                ${c ? `<p class="apt-p">교육과정 6대 핵심역량(5점): ${Object.keys(APT_KEDI).filter(k => c[k] != null).map(k => `${APT_KEDI[k]} ${c[k]}`).join(" · ")}</p>` : ""}
+                <p class="apt-p" style="color:#64748b; font-size:12px;">적성검사가 만든 '세특 형식 글'과 학종 역량 값은 실제 학생부가 아니므로 세특 분석·학종 점수에는 넣지 않았습니다. 학종 역량은 실제 생기부 세특으로만 계산합니다.</p>`;
+            box.insertBefore(card, box.firstChild);
+        }
+        try { if (typeof BroadcastChannel !== "undefined") { const bc = new BroadcastChannel("CODEX2028_APTITUDE_CHANNEL"); bc.onmessage = (ev) => { if (ev && ev.data && ev.data.app === APT_BRIDGE_APP) showToast("🔗 적성검사에서 새 결과가 저장되었습니다 — 적성 탭의 [이 기기의 최근 적성검사 결과 가져오기]를 누르세요."); }; } } catch (e) { /* 무시 */ }
         async function aptImportFile(ev) {
             const f = ev.target.files && ev.target.files[0]; if (!f) return;
             try {
-                const o = JSON.parse(await readFileAsText(f));
+                const txt = await readFileAsText(f);
+                let o = null;
+                try { o = JSON.parse(txt); } catch (e) { const m = String(txt).match(/CODEX_JSON_START\s*(\{[\s\S]*?\})\s*CODEX_JSON_END/); if (m) o = JSON.parse(m[1]); }
+                if (o && o.app === APT_BRIDGE_APP) { aptApplyBridge(o); return; }
                 if (!o || o.app !== "APTITUDE-2028" || !o.riasec) throw new Error("진로 적성 진단 결과 파일이 아닙니다");
                 const scores = {};
                 RIASEC.forEach(([c]) => { const n = Number(o.riasec[c]); if (isFinite(n) && n >= 0 && n <= 100) scores[c] = Math.round(n); });
@@ -5864,7 +5953,8 @@
             else fallbackCopy(txt);
         }
 
-        function renderAptitude() {
+        function renderAptitude() { renderAptitudeBase(); aptRenderBridgeCard(); }
+        function renderAptitudeBase() {
             const box = document.getElementById("apt-result"); if (!box) return;
             if (!aptHasScores()) {
                 box.innerHTML = `<div class="apt-card"><div class="hero-empty">흥미 유형 점수를 3개 이상 넣으면 계열 적성, 성적×적성 추천, 세특 연결 제안이 나옵니다.</div></div>`;
@@ -6330,7 +6420,7 @@
             const hp = hopeParse();
             const hmEl = document.getElementById("hope-max"); if (hmEl) hmEl.value = String(hopeGet().hopeMax);
             const order = `<span style="color:#64748b;">추천 순서: ① 희망 대학·학과(최대 ${hopeGet().hopeMax}장 · 희망 대학마다 먼저 1장, 중복지원이 되면 같은 대학 다른 전형도 함께) → ② 성적에 맞는 곳으로 나머지 → ③ 같은 성적 조건이면 세특이 맞는 계열을 먼저${(typeof skLast !== "undefined" && skLast) ? "" : " (세특을 분석하면 적용)"}.</span>`;
-            if (!hp.active) { out.innerHTML = order + "<br>가고 싶은 대학이나 학과를 넣고 <strong>[⭐ 적용하고 비교 보기]</strong>를 누르세요(Enter 키도 됩니다)."; return; }
+            if (!hp.active) { const at = (typeof aptState !== "undefined" && aptState && aptState.aptTarget) ? aptState.aptTarget.name : ""; out.innerHTML = order + "<br>가고 싶은 대학이나 학과를 넣고 <strong>[⭐ 적용하고 비교 보기]</strong>를 누르세요(Enter 키도 됩니다)." + (at ? `<br>🔗 적성검사 목표 학과: <strong>${escapeHtmlDD(at)}</strong> <button type="button" class="btn" onclick="aptHopeFromTarget()" style="padding:3px 10px; font-size:12px;">희망 학과로 넣기</button>` : ""); return; }
             if (!evalList) { out.innerHTML = order + `<br><span style="color:#b45309;">내신을 입력하면(성적표 올리기 또는 왼쪽 내신 칸) 희망 대학·학과의 합격선 비교가 나옵니다.</span>`; return; }
             const picks = getPickedSusi6(evalList, st);
             hopeBypass = true; let base; try { base = getPickedSusi6(evalList, st); } finally { hopeBypass = false; }
@@ -9417,7 +9507,7 @@ ${r.clean.slice(0, 14000)}`;
             recalcFinalExamSimulator();
             resetToInitialEmpty(true);
             dataUpdInit();
-            hsInit();   // 초기화가 끝난 뒤 저장본을 불러옴 (순서가 바뀌면 불러온 성적이 지워짐)
+            Promise.resolve(hsInit()).then(() => { if (typeof aptCheckUrl === "function") aptCheckUrl(); });   // 초기화가 끝난 뒤 저장본을 불러옴 (순서가 바뀌면 불러온 성적이 지워짐)
         });
     </script>
 <datalist id="finder-list"></datalist>
