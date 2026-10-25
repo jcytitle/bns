@@ -5599,10 +5599,7 @@
             let el = null;
             if (secId === "sd-policy") { const d = document.getElementById("policy-details"); if (d) { d.open = true; el = d; } }
             else if (secId === "sd-conv") { const r = document.getElementById("board-susi"); if (r) r.checked = true; const l = document.querySelector("label.lbl-conv-1"); el = l ? l.parentElement.parentElement : null; }
-            else {
-                const qGrid = document.querySelector(".center-content-container .mobile-quick-grid");
-                el = (qGrid && qGrid.offsetParent) ? document.querySelector(".mobile-quick-input-bar") : document.getElementById("sidebar");
-            }
+            else el = document.querySelector(".mobile-quick-input-bar");
             if (!el || !el.offsetParent) { const c = document.getElementById("chk-sidebar"); if (c) c.checked = true; return; }
             setTimeout(() => { if (el.scrollIntoView) el.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "start" }); }, 40);
         }
