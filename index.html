@@ -1815,7 +1815,14 @@
   .rec-pill.on::before { content:"☑ "; }
   
         #member-precision-briefing, #subj-strength-box { display: none !important; }
+    
+        #hope-bar { display: none !important; }
+        #board-susi:checked ~ .app-shell #global-mock-session-wrap { display: none !important; }
+        .my6-view-bar { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:0 0 8px; }
+        .my6-view-bar .btn.on { background:#f59e0b !important; border-color:#d97706 !important; color:#fff !important; }
+        .c2-mine { display:inline-block; margin-left:4px; padding:1px 7px; border-radius:999px; background:#f59e0b; color:#fff; font-size:11px; font-weight:800; }
     </style>
+
 
 
 
@@ -2290,7 +2297,9 @@
                     <div id="member-precision-briefing" data-hidden="1" style="display:none !important; background:rgba(15, 23, 42, 0.94); border:1.5px solid #10b981; border-radius:10px; padding:12px 15px; margin-bottom:16px; display:none;">
                     </div>
 
-                    <!-- 1순위: 희망 대학·학과 -->
+                    <!-- 나의 수시 6장 정하기 (예전 '1순위 희망 대학·학과' 자리) -->
+                    <div id="my6-box" class="univ-analysis-section" style="margin-bottom:12px; padding:12px 14px; border:2px solid #f59e0b;"><div style="font-weight:800; font-size:14px; color:#b45309;">✍️ 나의 수시 6장 정하기</div><div style="font-size:12px; color:#64748b; margin-top:4px;">내신을 입력하면 추천 6장을 가져와 원하는 대학·학과로 바꿔 볼 수 있습니다.</div></div>
+                    <!-- 1순위: 희망 대학·학과 (숨김 — 나의 6장으로 대체) -->
                     <div id="hope-bar" class="univ-analysis-section" style="margin-bottom:12px; padding:10px 14px; border:1.5px solid #f59e0b;">
                         <div style="font-weight:800; color:#fbbf24; font-size:14px; margin-bottom:6px;">⭐ 1순위 — 가고 싶은 대학·학과</div>
                         <div style="display:flex; flex-wrap:wrap; gap:8px; font-size:12px; color:#cbd5e1;">
@@ -2324,8 +2333,8 @@
                         <span id="susi-portfolio-badge" style="font-size:12px; color:#34d399; font-weight:700;">성적 입력 대기 중</span>
                     </div>
                     <div style="font-size:12px; color:#475569; margin:-4px 0 8px;">판정 기준: 실질 내신(대학 반영방식)이 <strong>50%컷 안 → 최대 안정</strong> · <strong>50~70%컷 사이 → 최대 적정</strong> · <strong>70%컷 밖 → 최대 소신</strong>. 그 안에서 세특·모의고사·전형 특성을 더한 적합도로 최종 판정합니다(내신을 바꾸면 바로 다시 계산).</div>
+                    <div id="my6-view-bar" class="my6-view-bar"></div>
                     <div class="cards-6-grid" id="susi-dynamic-cards"></div>
-                    <div id="my6-box" class="univ-analysis-section" style="margin-top:14px; padding:12px 14px; border:2px solid #f59e0b;"><div style="font-weight:800; font-size:14px; color:#b45309;">✍️ 나의 수시 6장 정하기</div><div style="font-size:12px; color:#64748b; margin-top:4px;">내신을 입력하면 추천 6장을 가져와 원하는 대학·학과로 바꿔 볼 수 있습니다.</div></div>
                     <div id="subj-strength-box" class="univ-analysis-section" data-hidden="1" style="display:none !important; margin-top:16px; padding:12px 14px; border:1.5px solid #38bdf8; display:none;"></div>
                     <div id="rec-scenario-box" class="univ-analysis-section" style="margin-top:16px; padding:12px 14px; border:1.5px solid #a78bfa;"></div>
 
@@ -4430,6 +4439,7 @@
                 document.getElementById('susi-dynamic-matrix').innerHTML = "";
                 const tb = document.querySelector('#susi-dynamic-table tbody'); if (tb) tb.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:18px; color:#94a3b8;">내신 미입력 — 수시 비교표 보류</td></tr>`;
             } else {
+                if (typeof my6Last !== "undefined") my6Last = { evalList: evaluatedAll, st };
                 renderSusi6Cards(evaluatedAll);
                 renderRecScenarios(evaluatedAll, st);
                 renderSubjStrength(evaluatedAll);
@@ -4841,7 +4851,7 @@
                     ${inp("gtd-name", "text", "학생 이름", "120px")}${inp("gtd-pw", "password", "비밀번호 (8자 이상)", "160px")}
                     <label style="font-size:12px; color:#334155;"><input type="checkbox" id="gtd-remember"> 이 기기에서 기억</label>
                     <button type="button" class="btn" onclick="gtdOpenFromForm()" style="padding:5px 12px; font-size:12px; font-weight:800;">학생 열기 / 등록</button>
-                    <label class="btn file-upload-btn" style="padding:5px 10px; font-size:12px;">📂 암호 파일(.gtd)에서 열기<input type="file" onchange="gtdOpenFromFile(event)"></label>
+                    <label class="btn file-upload-btn" style="padding:5px 10px; font-size:12px;">📂 파일에서 열기 (.gtd · 백업 .json)<input type="file" accept=".gtd,.json,application/json,application/octet-stream" onchange="gtdOpenFromFile(event)"></label>
                 </div>
                 ${pend ? `<div style="margin-top:8px; padding:8px 10px; border:1.5px dashed #f59e0b; border-radius:8px; font-size:12px; color:#334155;">
                     <strong>'${escapeHtmlDD(pend.name)}'</strong> 학생의 저장본을 찾지 못했습니다(이 기기${pend.remoteTried ? "·GitHub" : ""}).
@@ -4872,7 +4882,7 @@
         // GitHub에서 이 학생 파일 찾기: ① 정확한 이름(맨 위·data 폴더) ② 못 찾으면 저장소 파일 목록에서 .gtd 파일을 하나씩 열어 봄
         //   (내려받을 때 브라우저가 이름을 "…(1).gtd", "….gtd.json"처럼 바꾼 경우도 찾음 · 이름+비밀번호가 둘 다 맞아야 열림)
         async function gtdFindRemote(fileId, name, pw) {
-            if (hsDb || !/^https?:$/.test(location.protocol)) return { tried: false, body: null, note: "이 화면(Claude 링크·파일로 연 화면)에서는 GitHub 파일을 자동으로 찾을 수 없습니다 — [📂 암호 파일(.gtd)에서 열기]를 쓰세요." };
+            if (hsDb || !/^https?:$/.test(location.protocol)) return { tried: false, body: null, note: "이 화면(Claude 링크·파일로 연 화면)에서는 GitHub 파일을 자동으로 찾을 수 없습니다 — [📂 파일에서 열기]를 쓰세요." };
             const tryOpen = async (url) => {
                 try { const r = await fetch(url, { cache: "no-store" }); if (!r.ok) return null; const f = JSON.parse(await r.text()); if (!f || f.app !== "GoToDream") return null; const b = await gtdDecrypt(f, pw); return gtdNorm(b.name) === gtdNorm(name) ? b : null; } catch (e) { return null; }
             };
@@ -4896,6 +4906,13 @@
                 for (const nm of list.filter(nm => !nm.split("/").pop().startsWith(fileId)).slice(0, 15)) consider(await tryOpen(base + nm.split("/").map(encodeURIComponent).join("/")), nm);
             }
             let note = "";
+            if (!best) {
+                const gtdN = list.filter(nm => /\.gtd/i.test(nm)).length, jsonL = list.filter(nm => !/\.gtd/i.test(nm));
+                let plainN = 0;
+                for (const nm of jsonL.slice(0, 10)) { try { const r = await fetch(base + nm.split("/").map(encodeURIComponent).join("/"), { cache: "no-store" }); if (r.ok) { const o = JSON.parse(await r.text()); if (o && o.state && o.app !== "GoToDream") plainN++; } } catch (e) { /* 무시 */ } }
+                note = list.length ? `GitHub 저장소에서 .gtd 파일 ${gtdN}개를 열어 봤지만 이 이름·비밀번호와 맞는 파일이 없습니다.` : "GitHub 저장소 파일 목록을 읽지 못했습니다(올린 지 얼마 안 됐거나 접속 제한).";
+                if (plainN) note += `<br><span style="color:#b91c1c;">⚠️ 저장소에 암호 없는 백업 .json이 ${plainN}개 있습니다. 이 파일은 이름·비밀번호로 열 수 없고, 공개 저장소라 누구나 성적·생기부를 볼 수 있습니다 — GitHub에서 지우세요.</span> 그 백업 파일은 [📂 파일에서 열기]로 가져온 뒤 [⬇ GitHub용 파일 받기]로 만든 <strong>${fileId}.gtd</strong>를 올리면 됩니다.`;
+            }
             if (best && dupN > 1) note = `⚠️ GitHub에 이 학생 파일이 <strong>${dupN}개</strong> 있어 가장 최근 것(<strong>${escapeHtmlDD(bestName)}</strong>, ${escapeHtmlDD(best.exportedAt || "")})을 열었습니다. 혼동을 막으려면 나머지는 지우고 <strong>${fileId}.gtd</strong> 하나만 두세요.`;
             else if (best && !exact.has(bestName)) note = `GitHub에서 <strong>${escapeHtmlDD(bestName)}</strong> 파일로 찾았습니다. 다음부터는 이름을 <strong>${fileId}.gtd</strong> 그대로 올리면 더 빨리 열립니다.`;
             return { tried: true, body: best, note };
@@ -4985,16 +5002,27 @@
                 if (!name || !pw) throw new Error("먼저 이름과 비밀번호를 입력한 뒤 파일을 고르세요");
                 if (!gtdCan()) throw new Error("이 화면에서는 암호화 기능을 쓸 수 없습니다");
                 gtdMsg("🔐 여는 중…");
-                let raw; try { raw = JSON.parse(await readFileAsText(f)); } catch (e) { throw new Error("고른 파일이 Go to Dream 암호 파일(.gtd)이 아닙니다"); }
-                const body = await gtdDecrypt(raw, pw);
-                if (gtdNorm(body.name) !== gtdNorm(name)) throw new Error("이 파일은 다른 이름으로 등록된 학생의 파일입니다");
+                if (pw.length < 8) throw new Error("비밀번호는 8자 이상이어야 합니다");
+                let raw; try { raw = JSON.parse(await readFileAsText(f)); } catch (e) { throw new Error("고른 파일이 Go to Dream 파일(.gtd 또는 백업 .json)이 아닙니다"); }
+                let body, plain = false;
+                if (raw && raw.app === "GoToDream" && raw.ct) {
+                    body = await gtdDecrypt(raw, pw);
+                    if (gtdNorm(body.name) !== gtdNorm(name)) throw new Error("이 파일은 다른 이름으로 등록된 학생의 파일입니다");
+                } else if (raw && ["HS_only_codex", "GoToDream-backup", "GoToDream"].includes(raw.app) && raw.state) {
+                    // 암호 없는 백업 파일 → 지금 넣은 이름·비밀번호의 학생으로 가져옴
+                    plain = true;
+                    body = { app: "GoToDream", v: 1, name, exportedAt: raw.exportedAt || hsNowStr(), state: Object.assign({}, raw.state, { name }), record: raw.record || {}, log: raw.log || { entries: [] } };
+                } else throw new Error("고른 파일이 Go to Dream 파일(.gtd 또는 백업 .json)이 아닙니다");
                 const fileId = await gtdFileId(name, pw);
                 gtdUseNamespace(fileId);
                 await gtdWriteBody(body);
                 hsLocalWrite({ gtdMeta: { syncHash: null, syncAt: body.exportedAt } });
                 await gtdEnter(name, fileId, pw, r ? r.checked : false);
                 gtdMetaWrite({ syncHash: gtdCurHash(), syncAt: body.exportedAt });
-                gtdRenderPanel(); gtdMsg(`✅ 파일(${escapeHtmlDD(f.name)})에서 ${escapeHtmlDD(name)} 학생을 열었습니다.`);
+                if (plain) { hsLast = { state: "", record: "" }; await hsSaveNow(); gtdMetaWrite({ syncHash: null, syncAt: null }); }
+                gtdRenderPanel();
+                gtdMsg(plain ? `✅ 백업 파일(${escapeHtmlDD(f.name)})을 <strong>${escapeHtmlDD(name)}</strong> 학생(지금 넣은 비밀번호)으로 가져왔습니다.<br>· 다른 기기(PC·아이패드)에서도 이름+비밀번호로 열려면 지금 [⬇ GitHub용 파일 받기]를 눌러 받은 <strong>${fileId}.gtd</strong>를 GitHub 저장소에 올리세요.<br><span style="color:#b91c1c;">· 백업 .json은 암호가 없습니다 — GitHub(공개 저장소)에 올려 두었다면 지우세요.</span>`
+                    : `✅ 파일(${escapeHtmlDD(f.name)})에서 ${escapeHtmlDD(name)} 학생을 열었습니다.`);
             } catch (e) { gtdUseNamespace(gtd ? gtd.fileId : null); gtdMsg("⚠️ " + ((e && e.message) || e), true); }
             finally { try { ev.target.value = ""; } catch (e) { /* 무시 */ } }
         }
@@ -6187,8 +6215,9 @@
             ["hope-univ", "hope-dept"].forEach(id => { const e = document.getElementById(id); if (e) e.value = ""; });
             hopeApply();
         }
+        const HOPE_PICK_OFF = true;   // 희망 대학·학과는 '나의 수시 6장 정하기'에서 직접 넣음
         function hopeParse() {
-            if (hopeBypass) return { univs: [], depts: [], active: false };
+            if (hopeBypass || HOPE_PICK_OFF) return { univs: [], depts: [], active: false };
             const h = hopeGet();
             const univs = String(h.hopeUniv).split(/[,·\/\s]+/).map(x => x.trim().replace(/학교$/, "")).filter(Boolean).map(x => UNIV_ALIAS[x] || x);
             const depts = String(h.hopeDept).split(/[,·\/\s]+/).map(x => x.trim().replace(/(학과|학부|전공|과)$/, "")).filter(x => x.length >= 2);
@@ -6507,6 +6536,22 @@
         let my6Pending = null;    // 6장이 다 찼을 때 넣으려는 후보 id
         let my6Query = "";
         let my6Last = { evalList: null, st: null };
+        let my6View = "rec";     // 6장 카드 보기: rec(추천 6장) | my(나의 6장)
+        function my6SetView(v) { my6View = v === "my" && my6Work && my6Work.length ? "my" : "rec"; my6Cards(); }
+        function my6Cards() { if (my6Last.evalList && typeof renderSusi6Cards === "function") renderSusi6Cards(my6Last.evalList); else my6RenderViewBar(); }
+        function my6RenderViewBar() {
+            const bar = document.getElementById("my6-view-bar"), hl = document.getElementById("susi-6cards-headline");
+            const has = !!(my6Work && my6Work.length);
+            if (!has && my6View === "my") my6View = "rec";
+            if (bar) bar.innerHTML = has ? `<span style="font-size:12.5px; font-weight:800; color:#334155;">아래 카드 보기:</span>
+                <button type="button" class="btn ${my6View === "rec" ? "on" : ""}" style="padding:5px 12px; font-size:12.5px;" onclick="my6SetView('rec')">🎯 추천 6장</button>
+                <button type="button" class="btn ${my6View === "my" ? "on" : ""}" style="padding:5px 12px; font-size:12.5px;" onclick="my6SetView('my')">✍️ 나의 6장 (${my6Work.length}장)</button>` : "";
+            if (hl) {
+                if (!/^✍️/.test(hl.innerText)) hl.dataset.rec = hl.innerText;
+                if (my6View === "my") hl.innerText = `✍️ ${currentStudentName ? currentStudentName + " 학생 " : ""}나의 수시 6장 (직접 고른 카드 · ✏️ = 추천 6장에서 바꾼 카드)`;
+                else if (hl.dataset.rec) hl.innerText = hl.dataset.rec;
+            }
+        }
         const my6Key = () => MY6_LS + "|" + (typeof HS_LS_KEY !== "undefined" ? HS_LS_KEY : "");
         function my6LoadLS() { try { my6Saved = JSON.parse(localStorage.getItem(my6Key()) || "null"); } catch (e) { my6Saved = null; } }
         my6LoadLS();
@@ -6562,23 +6607,23 @@
         function my6RecIds(evalList, st) { try { return getPickedSusi6(evalList, st).map(p => p.id); } catch (e) { return []; } }
         function my6StartFromRec() {
             const { evalList, st } = my6Last; if (!evalList) { showToast("내신을 먼저 입력하세요."); return; }
-            my6Work = my6RecIds(evalList, st).map(id => ({ id })); my6Pending = null; my6Render();
+            my6Work = my6RecIds(evalList, st).map(id => ({ id })); my6Pending = null; my6View = "my"; my6Render(); my6Cards();
             showToast("추천 6장을 '나의 6장'으로 가져왔습니다. 아래에서 바꿀 카드를 고르세요.");
         }
         function my6Add(id) {
             const { evalList, st } = my6Last; if (!evalList) { showToast("내신을 먼저 입력하세요."); return; }
             if (!my6Work) my6Work = my6RecIds(evalList, st).map(x => ({ id: x }));
             if (my6Work.some(x => x.id === id)) { showToast("이미 나의 6장에 있습니다."); return; }
-            if (my6Work.length < 6) { my6Work.push({ id }); my6Pending = null; showToast("나의 6장에 넣었습니다."); }
+            if (my6Work.length < 6) { my6Work.push({ id }); my6Pending = null; my6View = "my"; my6Cards(); showToast("나의 6장에 넣었습니다 — 아래 6장 카드에도 반영했습니다."); }
             else { my6Pending = id; showToast("6장이 다 찼습니다. 아래 '바꿀 카드'를 골라 비교해 보세요."); }
             my6Render();
             const box = document.getElementById("my6-box"); if (box) box.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-        function my6Remove(i) { if (!my6Work) return; my6Work.splice(i, 1); my6Render(); }
+        function my6Remove(i) { if (!my6Work) return; my6Work.splice(i, 1); my6Render(); my6Cards(); }
         function my6Replace(i) {
             if (!my6Work || !my6Pending) return;
-            my6Work[i] = { id: my6Pending }; my6Pending = null; my6Render();
-            showToast("바꿨습니다. 마음에 들면 [💾 저장]을 누르세요.");
+            my6Work[i] = { id: my6Pending }; my6Pending = null; my6View = "my"; my6Render(); my6Cards();
+            showToast("바꿨습니다 — 아래 6장 카드에 ✏️로 표시했습니다. 마음에 들면 [💾 저장]을 누르세요.");
         }
         function my6CancelPending() { my6Pending = null; my6Render(); }
         function my6Save() {
@@ -6590,11 +6635,11 @@
         }
         function my6LoadSaved() {
             if (!my6Saved || !my6Saved.items) { showToast("저장된 6장이 없습니다."); return; }
-            my6Work = my6Saved.items.filter(x => UNIV_DB_JS.some(u => u.id === x.id)).map(x => ({ id: x.id })); my6Pending = null; my6Render();
+            my6Work = my6Saved.items.filter(x => UNIV_DB_JS.some(u => u.id === x.id)).map(x => ({ id: x.id })); my6Pending = null; my6View = "my"; my6Render(); my6Cards();
             const miss = my6Saved.items.length - my6Work.length;
             showToast(`저장본(${my6Saved.savedAt})을 불러왔습니다.${miss ? ` 자료에서 사라진 ${miss}곳은 빠졌습니다.` : ""}`);
         }
-        function my6Clear() { if (!confirm("지금 고치고 있는 나의 6장을 비울까요? (저장본은 그대로 남습니다)")) return; my6Work = []; my6Pending = null; my6Render(); }
+        function my6Clear() { if (!confirm("지금 고치고 있는 나의 6장을 비울까요? (저장본은 그대로 남습니다)")) return; my6Work = []; my6Pending = null; my6View = "rec"; my6Render(); my6Cards(); }
         function my6Search(v) { my6Query = String(v || "").trim(); my6RenderSearch(); }
         function my6RenderSearch() {
             const out = document.getElementById("my6-search-out"); if (!out) return;
@@ -6612,6 +6657,10 @@
             if (evalList) my6Last = { evalList, st };
             const box = document.getElementById("my6-box"); if (!box) return;
             const L = my6Last;
+            if (L.evalList && !my6Work && my6Saved && my6Saved.items && my6Saved.items.length) {
+                my6Work = my6Saved.items.filter(x => UNIV_DB_JS.some(u => u.id === x.id)).map(x => ({ id: x.id })); my6View = "my";
+                setTimeout(my6Cards, 0);
+            }
             if (!L.evalList || !L.st) { box.innerHTML = `<div style="font-weight:800; font-size:14px; color:#b45309;">✍️ 나의 수시 6장 정하기</div><div style="font-size:12px; color:#64748b; margin-top:4px;">내신을 입력하면 추천 6장을 가져와 원하는 대학·학과로 바꿔 볼 수 있습니다.</div>`; return; }
             const recIds = my6RecIds(L.evalList, L.st);
             const rec = recIds.map(id => my6Eval(id, L.st)).filter(Boolean);
@@ -6758,7 +6807,11 @@
             const container = document.getElementById('susi-dynamic-cards');
             if (!container) return;
 
-            const picked = getPickedSusi6(evalList);
+            const recPicked = getPickedSusi6(evalList);
+            const recIdSet = new Set(recPicked.map(x => x.id));
+            const useMine = typeof my6View !== "undefined" && my6View === "my" && my6Work && my6Work.length;
+            const picked = useMine ? my6Work.map(x => my6Eval(x.id, my6Last.st || getStudentScores())).filter(Boolean).map(x => Object.assign(x, { mine: true, changed: !recIdSet.has(x.id) })) : recPicked;
+            if (typeof my6RenderViewBar === "function") my6RenderViewBar();
             if (picked.length === 0) {
                 container.innerHTML = '<div class="univ-analysis-section" style="grid-column:1/-1; text-align:center; padding:24px; color:#94a3b8;">현재 조건에서 적합도 50 이상인 대학이 없습니다. 전체 계열을 선택하거나 등급을 조정해 보세요.</div>';
                 return;
@@ -6772,7 +6825,7 @@
                 return `
                 <div class="card-slot slot-${item.tier} c2" data-key="${escapeHtmlDD(item.univ + "::" + item.dept)}" style="--i:${idx};">
                     <div>
-                        <div class="c2-top"><span class="c2-no">${idx + 1}</span>${heroTier(item.tier)}<span class="c2-type">${item.hopePick ? "⭐ " : ""}${REC_CFG.applied && ["S", "Y", "K"].some(k => REC_IS[k](item)) ? "🎫 " : ""}${escapeHtmlDD(item.type)}</span></div>
+                        <div class="c2-top"><span class="c2-no">${idx + 1}</span>${heroTier(item.tier)}<span class="c2-type">${item.changed ? '<span class="c2-mine">✏️ 바꾼 카드</span> ' : ""}${item.hopePick ? "⭐ " : ""}${REC_CFG.applied && ["S", "Y", "K"].some(k => REC_IS[k](item)) ? "🎫 " : ""}${escapeHtmlDD(item.type)}</span></div>
                         <div class="card-univ-title">${item.univ}</div>
                         ${item.bundleUniv ? `<div class="c2-line" style="font-size:11px; color:#94a3b8;">같은 합격선 묶음: ${escapeHtmlDD(item.bundleOthers.join("·"))} — 대학별 컷 자료가 없어 대표 1곳만 표시(다른 카드와 겹치지 않는 대학 우선)</div>` : ""}
                         <div class="card-dept-name">${item.dept}${curBadge(item, "susi")}</div>
