@@ -1,10 +1,5 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="robots" content="noindex, nofollow, noarchive">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Go to Dream</title>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Go to Dream</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
     <style>
@@ -1818,9 +1813,10 @@
   }
   .rec-pill.on { border-color:#6d28d9; background:#6d28d9 !important; color:#fff !important; }
   .rec-pill.on::before { content:"☑ "; }
-  </style>
-</head>
-<body>
+  
+        #member-precision-briefing, #subj-strength-box { display: none !important; }
+    </style>
+
 
 
 
@@ -2289,9 +2285,9 @@
                         </div>
                     </div>
 
-<div class="model-disclaimer" style="background:rgba(148,163,184,.10); border:1px solid #475569; color:#cbd5e1; border-radius:10px; padding:8px 12px; margin-bottom:12px; font-size:12px; line-height:1.55;">ⓘ <strong>적합도</strong>(0~100)는 이 프로그램의 <strong>자체 모형 점수</strong>로, 과거 합격자 자료로 검증한 <strong>합격확률이 아닙니다</strong>. 2028 합격선은 2027 입결(9등급)을 5등급으로 옮긴 <strong>추정치</strong>이고, 대학 배점은 공개 자료를 근사한 값입니다. 학과 카드를 누르면 항목별 근거(공식·추정)를 볼 수 있습니다.</div>
+
                     <!-- 🔍 회원 상담용 실시간 데이터 정합성 & 대학별 유불리 정밀 브리핑 박스 -->
-                    <div id="member-precision-briefing" style="background:rgba(15, 23, 42, 0.94); border:1.5px solid #10b981; border-radius:10px; padding:12px 15px; margin-bottom:16px; display:none;">
+                    <div id="member-precision-briefing" data-hidden="1" style="display:none !important; background:rgba(15, 23, 42, 0.94); border:1.5px solid #10b981; border-radius:10px; padding:12px 15px; margin-bottom:16px; display:none;">
                     </div>
 
                     <!-- 1순위: 희망 대학·학과 -->
@@ -2329,7 +2325,8 @@
                     </div>
                     <div style="font-size:12px; color:#475569; margin:-4px 0 8px;">판정 기준: 실질 내신(대학 반영방식)이 <strong>50%컷 안 → 최대 안정</strong> · <strong>50~70%컷 사이 → 최대 적정</strong> · <strong>70%컷 밖 → 최대 소신</strong>. 그 안에서 세특·모의고사·전형 특성을 더한 적합도로 최종 판정합니다(내신을 바꾸면 바로 다시 계산).</div>
                     <div class="cards-6-grid" id="susi-dynamic-cards"></div>
-                    <div id="subj-strength-box" class="univ-analysis-section" style="margin-top:16px; padding:12px 14px; border:1.5px solid #38bdf8; display:none;"></div>
+                    <div id="my6-box" class="univ-analysis-section" style="margin-top:14px; padding:12px 14px; border:2px solid #f59e0b;"><div style="font-weight:800; font-size:14px; color:#b45309;">✍️ 나의 수시 6장 정하기</div><div style="font-size:12px; color:#64748b; margin-top:4px;">내신을 입력하면 추천 6장을 가져와 원하는 대학·학과로 바꿔 볼 수 있습니다.</div></div>
+                    <div id="subj-strength-box" class="univ-analysis-section" data-hidden="1" style="display:none !important; margin-top:16px; padding:12px 14px; border:1.5px solid #38bdf8; display:none;"></div>
                     <div id="rec-scenario-box" class="univ-analysis-section" style="margin-top:16px; padding:12px 14px; border:1.5px solid #a78bfa;"></div>
 
                     <!-- Selectable Tier Matrix -->
@@ -4582,7 +4579,7 @@
             return JSON.parse(JSON.stringify({
                 v: 1, name: currentStudentName || HS_NAME, school: currentSchoolName, gender: currentGender, stream: currentStream, track: currentTrack, convMode: currentConvMode,
                 subjects: studentSubjects || [], mockSessions: uploadedMockSessions || [], mockIdx: activeMockSessionIdx, gpaSource, mockSource, pctReal, mockAssumed: mockAssumedSubjects, qualSrc, planned: plannedCourses, applicant: applicantMode, nsu: nsuLevel, apt: aptState,
-                inputs: HS_INPUT_IDS.reduce((o, id) => { o[id] = hsInputVal(id); return o; }, {}), hasActiveScore, meta: hsMeta
+                inputs: HS_INPUT_IDS.reduce((o, id) => { o[id] = hsInputVal(id); return o; }, {}), hasActiveScore, meta: hsMeta, my6: (typeof my6Saved !== "undefined" ? my6Saved : null)
             }));
         }
         function hsCollectRecord() {
@@ -4658,6 +4655,7 @@
             aptState = { scores: {}, areas: [], hopeTrack: "", hopeDept: "", hopeUniv: "", test: "", date: "" };
             if (typeof aptWrite === "function") aptWrite();
             if (typeof recLoad === "function") recLoad();
+            if (typeof my6LoadLS === "function") { my6LoadLS(); my6Work = null; my6Pending = null; }
             updateStudentNameBanner();
         }
         function hsApplyState(st, rc) {
@@ -4689,6 +4687,7 @@
                     nsuLevel = NSU_LEVELS[st.nsu] ? Number(st.nsu) : 0;
                     aptState = Object.assign({ scores: {}, areas: [], hopeTrack: "", hopeDept: "", hopeUniv: "", test: "", date: "" }, (st.apt && typeof st.apt === "object") ? st.apt : {}); aptWrite();
                     if (typeof recLoad === "function") recLoad();
+                    if (typeof my6LoadLS === "function") { my6LoadLS(); if (st.my6 && st.my6.items) { my6Saved = st.my6; try { localStorage.setItem(my6Key(), JSON.stringify(my6Saved)); } catch (e) { } } my6Work = null; my6Pending = null; }
                     document.querySelectorAll(".js-applicant-sel").forEach(el => { el.value = applicantMode; });
                     document.querySelectorAll(".js-nsu-sel").forEach(el => { el.value = String(nsuLevel); });
                 }
@@ -6484,7 +6483,7 @@
                 else state = `<span style="color:#64748b;">희망 카드 ${hopeGet().hopeMax}장 한도로 빠짐 — 위에서 최대 장수를 늘리면 들어옴</span>`;
                 const gapTxt = gap >= 0 ? `<span style="color:#059669;">컷보다 ${gap.toFixed(3)} 안쪽</span>` : `<span style="color:#dc2626;">컷까지 ${(-gap).toFixed(3)} 부족</span>`;
                 const csat = !x.csatRule || x.csatRule === "NONE" ? "없음" : (x.csat.pass ? "충족" : "미달");
-                return `<tr${inP ? ' style="background:rgba(245,158,11,.10);"' : ""}><td style="text-align:left;"><strong>${escapeHtmlDD(x.univ)}</strong> ${escapeHtmlDD(String(x.dept).split(" / ")[0])}<br><small style="color:#64748b;">${escapeHtmlDD(String(x.type).replace(/^학생부/, ""))}</small></td><td>${x.cut70_5g.toFixed(2)}</td><td>${x.effUnivGpa.toFixed(3)}</td><td>${gapTxt}</td><td><strong style="color:${tierCol[x.tier] || "#64748b"};">${x.prob}</strong> <small>${TIER_KO[x.tier] || "어려움"}</small></td><td>${csat}</td><td>${state}</td></tr>`;
+                return `<tr${inP ? ' style="background:rgba(245,158,11,.10);"' : ""}><td style="text-align:left;"><strong>${escapeHtmlDD(x.univ)}</strong> ${escapeHtmlDD(String(x.dept).split(" / ")[0])}<br><small style="color:#64748b;">${escapeHtmlDD(String(x.type).replace(/^학생부/, ""))}</small></td><td>${x.cut70_5g.toFixed(2)}</td><td>${x.effUnivGpa.toFixed(3)}</td><td>${gapTxt}</td><td><strong style="color:${tierCol[x.tier] || "#64748b"};">${x.prob}</strong> <small>${TIER_KO[x.tier] || "어려움"}</small></td><td>${csat}</td><td>${state}<br><button type="button" class="btn" style="margin-top:3px; padding:2px 8px; font-size:11.5px; font-weight:800; border-color:#f59e0b; color:#b45309;" onclick="my6Add('${x.id}')">＋ 내 6장</button></td></tr>`;
             }).join("");
             const bIds = new Set(base.map(p => p.id)), aIds = new Set(picks.map(p => p.id));
             const added = picks.filter(p => !bIds.has(p.id)), removed = base.filter(p => !aIds.has(p.id));
@@ -6501,9 +6500,172 @@
                 ${all.length > 12 ? `<div style="color:#64748b;">맞는 모집단위 ${all.length}곳 중 12곳만 표시 — 대학이나 학과를 더 좁혀 보세요.</div>` : ""}
                 ${cmp}`;
         }
+        // ───────── 나의 수시 6장: 추천 6장에서 시작 → 원하는 대학·학과로 바꾸고 비교 → 저장·불러오기 ─────────
+        const MY6_LS = "codex_my6_v1";
+        let my6Saved = null;      // 저장본 { items:[{id,label}], savedAt }
+        let my6Work = null;       // 지금 고치고 있는 6장 [{id,label}]
+        let my6Pending = null;    // 6장이 다 찼을 때 넣으려는 후보 id
+        let my6Query = "";
+        let my6Last = { evalList: null, st: null };
+        const my6Key = () => MY6_LS + "|" + (typeof HS_LS_KEY !== "undefined" ? HS_LS_KEY : "");
+        function my6LoadLS() { try { my6Saved = JSON.parse(localStorage.getItem(my6Key()) || "null"); } catch (e) { my6Saved = null; } }
+        my6LoadLS();
+        function my6Persist() {
+            try { localStorage.setItem(my6Key(), JSON.stringify(my6Saved)); } catch (e) { /* 저장 불가 */ }
+            if (typeof hsScheduleSave === "function") hsScheduleSave();
+        }
+        const my6Label = (u) => `${u.univ} ${String(u.dept).replace(/\s*\(.*$/, "")} · ${String(u.type).replace(/^학생부/, "")}`;
+        function my6Eval(id, st) {
+            const u = UNIV_DB_JS.find(x => x.id === id);
+            if (!u) return null;
+            const it = evaluateUniversityItem(u, st);
+            const women = currentGender === "M" && String(u.univ).split("·").every(p => isWomenUniv(p.trim()));
+            return Object.assign({}, it, { women });
+        }
+        const MY6_TIER = { safe: ["안정", "#059669"], target: ["적정", "#0284c7"], reach: ["소신", "#d97706"], impossible: ["불가", "#dc2626"] };
+        function my6TierOf(x) { if (!x) return ["없음", "#64748b"]; if (x.women) return ["지원 불가(여대)", "#dc2626"]; if (!x.csat.pass) return ["불가(최저 미달)", "#dc2626"]; return MY6_TIER[x.tier] || ["불가", "#dc2626"]; }
+        // 6장 묶음의 규칙 점검
+        function my6Check(list) {
+            const w = [], ro = (typeof recOptsGlobal === "function") ? recOptsGlobal() : null;
+            const by = {};
+            list.forEach(x => { const k = String(x.univ).split("·")[0] + "|" + String(x.type).replace(/\s/g, ""); (by[k] = by[k] || []).push(x); });
+            Object.values(by).forEach(a => { if (a.length > 1) w.push(`❌ ${a[0].univ} ${String(a[0].type).replace(/^학생부/, "")}에 ${a.length}개 학과 — 같은 대학 같은 전형은 한 학과만 지원할 수 있습니다`); });
+            if (list.filter(x => /^서울대/.test(x.univ)).length > 1) w.push("❌ 서울대는 수시에서 1개 전형만 지원할 수 있습니다");
+            if (list.some(x => x.univ === "연세대" && /추천형/.test(x.type)) && list.some(x => x.univ === "연세대" && /종합인재/.test(x.type))) w.push("❌ 연세대 추천형과 종합인재는 함께 지원할 수 없습니다");
+            if (typeof REC_IS !== "undefined") ["S", "Y", "K"].forEach(k => {
+                const has = list.filter(REC_IS[k]); if (!has.length) return;
+                const got = REC_CFG && REC_CFG.applied && REC_CFG.applied[k];
+                if (!got) w.push(`⚠️ ${has.map(x => x.univ + " " + String(x.dept).replace(/\s*\(.*$/, "")).join(", ")} — 학교장 추천이 있어야 지원할 수 있습니다(위 '학교장 추천'에서 받은 추천을 체크하세요)`);
+            });
+            list.forEach(x => { if (x.women) w.push(`❌ ${x.univ} — 여대라 남학생은 지원할 수 없습니다`); else if (!x.csat.pass) w.push(`⚠️ ${x.univ} ${String(x.dept).replace(/\s*\(.*$/, "")} — 지금 모의고사로는 수능최저 미달`); });
+            const cnt = (t) => list.filter(x => !x.women && x.csat.pass && x.tier === t).length;
+            if (list.length >= 4 && cnt("safe") === 0) w.push("⚠️ 안정 카드가 없습니다 — 6장 모두 떨어질 위험이 커집니다(1~2장은 안정 권장)");
+            if (list.length >= 4 && cnt("reach") + list.filter(x => x.women || !x.csat.pass || x.tier === "impossible").length >= 5) w.push("⚠️ 소신·불가가 너무 많습니다");
+            return w;
+        }
+        function my6Summary(list) {
+            const ok = list.filter(x => !x.women && x.csat.pass);
+            const c = { safe: 0, target: 0, reach: 0, bad: 0 };
+            list.forEach(x => { if (x.women || !x.csat.pass || x.tier === "impossible") c.bad++; else c[x.tier]++; });
+            const avg = ok.length ? Math.round(ok.reduce((a, x) => a + x.prob, 0) / ok.length) : 0;
+            return { c, avg, n: list.length };
+        }
+        const my6SumTxt = (s) => `안정 ${s.c.safe} · 적정 ${s.c.target} · 소신 ${s.c.reach} · 불가 ${s.c.bad} · 평균 적합도 ${s.avg}`;
+        function my6Row(x, i, extra) {
+            const [tl, tc] = my6TierOf(x);
+            const gap = x.cut70_5g - x.effUnivGpa;
+            const gapTxt = gap >= 0 ? `<span style="color:#059669;">컷 안쪽 ${gap.toFixed(3)}</span>` : `<span style="color:#dc2626;">컷까지 ${(-gap).toFixed(3)} 부족</span>`;
+            return `<tr><td>${i + 1}</td><td style="text-align:left;"><strong>${escapeHtmlDD(x.univ)}</strong> ${escapeHtmlDD(String(x.dept).replace(/\s*\(.*$/, ""))}<br><small style="color:#64748b;">${escapeHtmlDD(String(x.type).replace(/^학생부/, ""))}</small></td>
+                <td>${Number(x.cut70_5g).toFixed(2)}</td><td>${Number(x.effUnivGpa).toFixed(3)}</td><td>${gapTxt}</td><td><strong style="color:${tc};">${tl}</strong> ${x.csat.pass && !x.women ? x.prob : ""}</td><td>${extra || ""}</td></tr>`;
+        }
+        const MY6_TH = `<thead><tr><th>#</th><th>대학·학과·전형</th><th>70%컷</th><th>내 실질</th><th>차이</th><th>판정</th><th></th></tr></thead>`;
+        function my6RecIds(evalList, st) { try { return getPickedSusi6(evalList, st).map(p => p.id); } catch (e) { return []; } }
+        function my6StartFromRec() {
+            const { evalList, st } = my6Last; if (!evalList) { showToast("내신을 먼저 입력하세요."); return; }
+            my6Work = my6RecIds(evalList, st).map(id => ({ id })); my6Pending = null; my6Render();
+            showToast("추천 6장을 '나의 6장'으로 가져왔습니다. 아래에서 바꿀 카드를 고르세요.");
+        }
+        function my6Add(id) {
+            const { evalList, st } = my6Last; if (!evalList) { showToast("내신을 먼저 입력하세요."); return; }
+            if (!my6Work) my6Work = my6RecIds(evalList, st).map(x => ({ id: x }));
+            if (my6Work.some(x => x.id === id)) { showToast("이미 나의 6장에 있습니다."); return; }
+            if (my6Work.length < 6) { my6Work.push({ id }); my6Pending = null; showToast("나의 6장에 넣었습니다."); }
+            else { my6Pending = id; showToast("6장이 다 찼습니다. 아래 '바꿀 카드'를 골라 비교해 보세요."); }
+            my6Render();
+            const box = document.getElementById("my6-box"); if (box) box.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        function my6Remove(i) { if (!my6Work) return; my6Work.splice(i, 1); my6Render(); }
+        function my6Replace(i) {
+            if (!my6Work || !my6Pending) return;
+            my6Work[i] = { id: my6Pending }; my6Pending = null; my6Render();
+            showToast("바꿨습니다. 마음에 들면 [💾 저장]을 누르세요.");
+        }
+        function my6CancelPending() { my6Pending = null; my6Render(); }
+        function my6Save() {
+            if (!my6Work || !my6Work.length) { showToast("저장할 6장이 없습니다."); return; }
+            const st = my6Last.st;
+            my6Saved = { items: my6Work.map(x => { const u = UNIV_DB_JS.find(v => v.id === x.id); return { id: x.id, label: u ? my6Label(u) : x.id }; }), savedAt: (() => { const d = new Date(), z = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`; })(), gpa: st ? Number(st.gpa.toFixed(3)) : null };
+            my6Persist(); my6Render();
+            showToast("나의 수시 6장을 저장했습니다. 생각이 바뀌면 [📂 저장본 불러오기]로 다시 고칠 수 있습니다.");
+        }
+        function my6LoadSaved() {
+            if (!my6Saved || !my6Saved.items) { showToast("저장된 6장이 없습니다."); return; }
+            my6Work = my6Saved.items.filter(x => UNIV_DB_JS.some(u => u.id === x.id)).map(x => ({ id: x.id })); my6Pending = null; my6Render();
+            const miss = my6Saved.items.length - my6Work.length;
+            showToast(`저장본(${my6Saved.savedAt})을 불러왔습니다.${miss ? ` 자료에서 사라진 ${miss}곳은 빠졌습니다.` : ""}`);
+        }
+        function my6Clear() { if (!confirm("지금 고치고 있는 나의 6장을 비울까요? (저장본은 그대로 남습니다)")) return; my6Work = []; my6Pending = null; my6Render(); }
+        function my6Search(v) { my6Query = String(v || "").trim(); my6RenderSearch(); }
+        function my6RenderSearch() {
+            const out = document.getElementById("my6-search-out"); if (!out) return;
+            const { st } = my6Last;
+            if (!st) { out.innerHTML = ""; return; }
+            if (my6Query.length < 1) { out.innerHTML = `<div style="color:#64748b; font-size:12px;">대학이나 학과를 입력하면 성적 판정과 함께 나옵니다. 예: <em>연세대 행정</em>, <em>경희 미디어</em>, <em>정치외교</em></div>`; return; }
+            const toks = my6Query.split(/\s+/).filter(Boolean).map(t => (typeof UNIV_ALIAS !== "undefined" && UNIV_ALIAS[t]) || t.replace(/학교$/, "").replace(/학과$|과$/, ""));
+            const pool = UNIV_DB_JS.filter(u => !u.jOnly && !(typeof isRegionalOnly === "function" && isRegionalOnly(u)) && toks.every(t => (u.univ + " " + u.dept + " " + u.type).includes(t)));
+            const rows = pool.map(u => my6Eval(u.id, st)).filter(Boolean).sort((a, b) => (b.csat.pass - a.csat.pass) || (b.prob - a.prob)).slice(0, 15);
+            if (!rows.length) { out.innerHTML = `<div style="color:#b45309; font-size:12px;">'${escapeHtmlDD(my6Query)}'에 맞는 모집단위가 자료에 없습니다. 대학 이름만 넣거나 학과 이름을 줄여 보세요.</div>`; return; }
+            const inW = new Set((my6Work || []).map(x => x.id));
+            out.innerHTML = `<div style="overflow-x:auto;"><table class="univ-table" style="min-width:600px; font-size:12px;">${MY6_TH}<tbody>${rows.map((x, i) => my6Row(x, i, inW.has(x.id) ? '<span style="color:#059669; font-weight:800;">✅ 6장에 있음</span>' : `<button type="button" class="btn" style="padding:3px 10px; font-size:12px; font-weight:800; border-color:#f59e0b; color:#b45309;" onclick="my6Add('${x.id}')">＋ 내 6장</button>`)).join("")}</tbody></table></div>${pool.length > 15 ? `<div style="color:#64748b; font-size:12px;">맞는 곳 ${pool.length}곳 중 15곳만 표시 — 더 좁혀 보세요.</div>` : ""}`;
+        }
+        function my6Render(evalList, st) {
+            if (evalList) my6Last = { evalList, st };
+            const box = document.getElementById("my6-box"); if (!box) return;
+            const L = my6Last;
+            if (!L.evalList || !L.st) { box.innerHTML = `<div style="font-weight:800; font-size:14px; color:#b45309;">✍️ 나의 수시 6장 정하기</div><div style="font-size:12px; color:#64748b; margin-top:4px;">내신을 입력하면 추천 6장을 가져와 원하는 대학·학과로 바꿔 볼 수 있습니다.</div>`; return; }
+            const recIds = my6RecIds(L.evalList, L.st);
+            const rec = recIds.map(id => my6Eval(id, L.st)).filter(Boolean);
+            const work = (my6Work || []).map(x => my6Eval(x.id, L.st)).filter(Boolean);
+            const savedTxt = my6Saved && my6Saved.items ? `저장본: <strong>${escapeHtmlDD(my6Saved.savedAt)}</strong> (${my6Saved.items.length}장${my6Saved.gpa != null ? ` · 저장 때 내신 ${my6Saved.gpa}` : ""})` : "저장본 없음";
+            const changed = my6Work && my6Saved && my6Saved.items && JSON.stringify(my6Work.map(x => x.id)) !== JSON.stringify(my6Saved.items.map(x => x.id));
+            let html = `<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                <div style="font-weight:900; font-size:15px; color:#b45309;">✍️ 나의 수시 6장 정하기 <small style="font-weight:700; color:#64748b;">추천 6장에서 시작 → 원하는 학과로 바꾸고 비교 → 저장</small></div>
+                <div style="font-size:12px; color:#475569;">${savedTxt}${changed ? ' · <span style="color:#dc2626; font-weight:800;">저장 안 한 변경 있음</span>' : ""}</div></div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin:8px 0;">
+                    <button type="button" class="btn" onclick="my6StartFromRec()" style="padding:6px 12px; font-size:12.5px; font-weight:800;">🎯 추천 6장으로 시작</button>
+                    <button type="button" class="btn btn-primary" onclick="my6Save()" style="padding:6px 14px; font-size:12.5px; font-weight:800;">💾 저장</button>
+                    <button type="button" class="btn" onclick="my6LoadSaved()" style="padding:6px 12px; font-size:12.5px;">📂 저장본 불러오기</button>
+                    <button type="button" class="btn" onclick="my6Clear()" style="padding:6px 12px; font-size:12.5px;">비우기</button>
+                </div>
+                <div style="font-size:12.5px; font-weight:800; color:#334155; margin-top:4px;">🔍 가고 싶은 대학·학과 찾기</div>
+                <input type="search" id="my6-q" value="${escapeHtmlDD(my6Query)}" placeholder="예: 연세대 행정, 경희 미디어, 정치외교" oninput="my6Search(this.value)" style="width:100%; max-width:420px; padding:7px 10px; border-radius:8px; border:1px solid #cbd5e1; margin:4px 0 6px;">
+                <div id="my6-search-out"></div>`;
+            if (!my6Work) {
+                html += `<div style="margin-top:8px; font-size:12.5px; color:#475569;">[🎯 추천 6장으로 시작]을 누르거나, 위에서 찾은 학과의 [＋ 내 6장]을 누르면 '나의 6장'이 만들어집니다. 희망 대학·학과 비교표의 [＋ 내 6장]으로도 넣을 수 있습니다.</div>`;
+            } else {
+                const sumR = my6Summary(rec), sumW = my6Summary(work);
+                html += `<div style="font-size:12.5px; font-weight:800; color:#334155; margin-top:10px;">📋 나의 6장 (${work.length}/6)</div>
+                    <div style="overflow-x:auto;"><table class="univ-table" style="min-width:600px; font-size:12px;">${MY6_TH}<tbody>${work.map((x, i) => my6Row(x, i, `<button type="button" class="btn" style="padding:3px 8px; font-size:11.5px;" onclick="my6Remove(${i})">빼기</button>`)).join("") || '<tr><td colspan="7" style="color:#64748b;">비어 있습니다</td></tr>'}</tbody></table></div>`;
+                if (my6Pending) {
+                    const cand = my6Eval(my6Pending, L.st);
+                    const opts = work.map((x, i) => {
+                        const after = work.slice(); after[i] = cand;
+                        const s = my6Summary(after), warn = my6Check(after).filter(t => /^❌/.test(t)).length;
+                        return `<tr><td style="text-align:left;">${i + 1}. ${escapeHtmlDD(x.univ)} ${escapeHtmlDD(String(x.dept).replace(/\s*\(.*$/, ""))} <small>(${my6TierOf(x)[0]})</small></td><td>${my6SumTxt(s)}</td><td>${warn ? `<span style="color:#dc2626;">규칙 위반 ${warn}</span>` : '<span style="color:#059669;">문제 없음</span>'}</td><td><button type="button" class="btn" style="padding:3px 10px; font-size:12px; font-weight:800;" onclick="my6Replace(${i})">이것과 바꾸기</button></td></tr>`;
+                    }).join("");
+                    html += `<div style="margin-top:8px; padding:8px 10px; border-radius:8px; border:1.5px solid #f59e0b; background:rgba(245,158,11,.06);">
+                        <div style="font-size:13px; font-weight:800;">➕ 넣으려는 학과: ${cand ? `${escapeHtmlDD(cand.univ)} ${escapeHtmlDD(String(cand.dept).replace(/\s*\(.*$/, ""))} · <span style="color:${my6TierOf(cand)[1]};">${my6TierOf(cand)[0]}</span> ${cand.csat.pass ? cand.prob : ""}` : ""} — 어느 카드와 바꿀까요?</div>
+                        <div style="font-size:12px; color:#475569;">지금: ${my6SumTxt(sumW)}</div>
+                        <div style="overflow-x:auto;"><table class="univ-table" style="min-width:560px; font-size:12px;"><thead><tr><th>빼는 카드</th><th>바꾼 뒤 6장</th><th>규칙</th><th></th></tr></thead><tbody>${opts}</tbody></table></div>
+                        <button type="button" class="btn" style="padding:3px 10px; font-size:12px; margin-top:4px;" onclick="my6CancelPending()">취소</button></div>`;
+                }
+                const warns = my6Check(work);
+                const recSet = new Set(recIds), myIds = new Set(work.map(x => x.id));
+                const add = work.filter(x => !recSet.has(x.id)), out = rec.filter(x => !myIds.has(x.id));
+                html += `<div style="margin-top:10px; display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:8px; font-size:12.5px;">
+                    <div style="padding:8px 10px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;"><strong>추천 6장</strong><br>${my6SumTxt(sumR)}</div>
+                    <div style="padding:8px 10px; border-radius:8px; background:#fffbeb; border:1px solid #fde68a;"><strong>나의 6장</strong><br>${my6SumTxt(sumW)}${work.length < 6 ? ` <span style="color:#b45309;">(${6 - work.length}장 비어 있음)</span>` : ""}</div></div>
+                    ${add.length || out.length ? `<div style="margin-top:6px; font-size:12.5px;">${add.map(x => `➕ <span style="color:#059669;">${escapeHtmlDD(x.univ)} ${escapeHtmlDD(String(x.dept).replace(/\s*\(.*$/, ""))}</span> (${my6TierOf(x)[0]})`).join(" · ")}${add.length && out.length ? "<br>" : ""}${out.map(x => `➖ <span style="color:#64748b;">${escapeHtmlDD(x.univ)} ${escapeHtmlDD(String(x.dept).replace(/\s*\(.*$/, ""))}</span> (${my6TierOf(x)[0]})`).join(" · ")}</div>` : `<div style="margin-top:6px; font-size:12.5px; color:#059669;">추천 6장과 같습니다.</div>`}
+                    <div style="margin-top:6px; font-size:12.5px; line-height:1.6;">${warns.length ? warns.map(t => `<div style="color:${/^❌/.test(t) ? "#dc2626" : "#b45309"};">${escapeHtmlDD(t)}</div>`).join("") : '<div style="color:#059669;">✅ 지원 규칙 위반 없음 · 안정 카드 있음</div>'}</div>`;
+            }
+            box.innerHTML = html;
+            my6RenderSearch();
+        }
+
         function renderRecScenarios(evalList, st) {
             renderHopeBar(evalList, st);
             renderRecBar(evalList, st);
+            my6Render(evalList, st);
             const box = document.getElementById("rec-scenario-box");
             if (!box) return;
             const likely = recLikely(), lk = likely ? recKey(likely) : null, ap = REC_CFG.applied ? recKey(REC_CFG.applied) : null;
@@ -9555,5 +9717,5 @@ ${r.clean.slice(0, 14000)}`;
         });
     </script>
 <datalist id="finder-list"></datalist>
-</body>
-</html>
+
+</body></html>
