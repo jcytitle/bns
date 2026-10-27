@@ -1,4 +1,4 @@
-﻿<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Go to Dream</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
@@ -2991,7 +2991,7 @@
                             <label><span>검사 이름</span><input type="text" id="apt-test" oninput="aptChanged()" placeholder="예: 커리어넷 직업흥미검사(H)"></label>
                             <label><span>검사일</span><input type="date" id="apt-date" onchange="aptChanged()"></label>
                         </div>
-                        <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;"><a class="btn" href="../Aptitude-Test/" target="_blank" rel="noopener" style="font-weight:800; text-decoration:none;">🧭 적성검사 하러 가기</a><button type="button" class="btn" onclick="aptPullBridge()" style="font-weight:800; border-color:#7c3aed; color:#6d28d9;">🔗 이 기기의 최근 적성검사 결과 가져오기</button><label class="btn file-upload-btn" style="font-weight:800;">적성검사 결과 파일 불러오기(.json·.html)<input type="file" accept=".json,.html,.htm,application/json,text/html" onchange="aptImportFile(event)" style="display:none;"></label><button type="button" class="btn" onclick="aptClear()">입력 지우기</button><span style="font-size:12px; color:var(--muted);">별도 '진로 적성 진단' 프로그램에서 저장한 결과 파일을 올리면 아래 칸이 자동으로 채워집니다.</span></div>
+                        <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;"><a class="btn" href="https://jcytitle.github.io/myway/" target="_blank" rel="noopener" style="font-weight:800; text-decoration:none;">🧭 적성검사(my way) 하러 가기</a><button type="button" class="btn" onclick="aptPullBridge()" style="font-weight:800; border-color:#7c3aed; color:#6d28d9;">🔗 이 기기의 최근 적성검사 결과 가져오기</button><label class="btn file-upload-btn" style="font-weight:800;">적성검사 결과 파일 불러오기(.json·.html)<input type="file" accept=".json,.html,.htm,application/json,text/html" onchange="aptImportFile(event)" style="display:none;"></label><button type="button" class="btn" onclick="aptClear()">입력 지우기</button><span style="font-size:12px; color:var(--muted);">별도 '진로 적성 진단' 프로그램에서 저장한 결과 파일을 올리면 아래 칸이 자동으로 채워집니다.</span></div>
                     </div>
                     <div id="apt-result"></div>
                 </div>
@@ -4806,23 +4806,74 @@
         function gtdUnB64(s) { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
         const gtdNorm = (n) => String(n || "").replace(/\s+/g, "").normalize("NFC");
         function gtdHash(str) { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(16); }
-        const gtdCan = () => !!(window.isSecureContext && window.crypto && crypto.subtle);
+        const hasWebCrypto = () => !!(window.crypto && crypto.subtle);
+        const gtdCan = () => true; // PC·태블릿 로컬 파일(file://) 환경에서도 동작하도록 폴백 지원
+        function gtdRandBytes(n) {
+            const u = new Uint8Array(n);
+            if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(u);
+            else for (let i = 0; i < n; i++) u[i] = Math.floor(Math.random() * 256);
+            return u;
+        }
+        function gtdFallbackDigest(bytes) {
+            const out = new Uint8Array(32);
+            let h1 = 0x6a09e667, h2 = 0xbb67ae85, h3 = 0x3c6ef372, h4 = 0xa54ff53a;
+            for (let i = 0; i < bytes.length; i++) {
+                const v = bytes[i];
+                h1 = Math.imul(h1 ^ v, 0x01000193) >>> 0;
+                h2 = Math.imul(h2 ^ ((v << 3) | (v >>> 5)), 0x85ebca6b) >>> 0;
+                h3 = Math.imul(h3 ^ ((v << 5) | (v >>> 3)), 0xc2b2ae35) >>> 0;
+                h4 = Math.imul(h4 ^ (255 - v), 0x27d4eb2f) >>> 0;
+                out[i & 31] ^= (h1 + h2 + i) & 0xff;
+            }
+            const words = [h1, h2, h3, h4, h1 ^ h3, h2 ^ h4, h1 ^ h4, h2 ^ h3];
+            for (let i = 0; i < 8; i++) {
+                out[i*4] ^= (words[i] >>> 24) & 255;
+                out[i*4+1] ^= (words[i] >>> 16) & 255;
+                out[i*4+2] ^= (words[i] >>> 8) & 255;
+                out[i*4+3] ^= words[i] & 255;
+            }
+            return out;
+        }
         async function gtdPbkdf(pw, salt, iter, bits) {
-            const k = await crypto.subtle.importKey("raw", gtdEnc.encode(pw), "PBKDF2", false, ["deriveBits"]);
-            return new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: iter }, k, bits));
+            if (hasWebCrypto()) {
+                try {
+                    const k = await crypto.subtle.importKey("raw", gtdEnc.encode(pw), "PBKDF2", false, ["deriveBits"]);
+                    return new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: iter }, k, bits));
+                } catch (e) {}
+            }
+            const pwB = gtdEnc.encode(pw);
+            const merged = new Uint8Array(pwB.length + salt.length);
+            merged.set(pwB, 0); merged.set(salt, pwB.length);
+            const d = gtdFallbackDigest(merged);
+            return d.slice(0, Math.ceil(bits / 8));
         }
         async function gtdFileId(name, pw) {
             const b = await gtdPbkdf(pw, gtdEnc.encode("gotodream-id|" + gtdNorm(name)), GTD_ID_ITER, 80);
             return [...b].map(x => x.toString(16).padStart(2, "0")).join("");
         }
         async function gtdEncrypt(obj, pw) {
-            const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
-            const key = await crypto.subtle.importKey("raw", await gtdPbkdf(pw, salt, GTD_KEY_ITER, 256), "AES-GCM", false, ["encrypt"]);
-            const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, gtdEnc.encode(JSON.stringify(obj))));
-            return { app: "GoToDream", v: 1, kdf: "PBKDF2-SHA256", iter: GTD_KEY_ITER, salt: gtdB64(salt), iv: gtdB64(iv), ct: gtdB64(ct) };
+            const salt = gtdRandBytes(16), iv = gtdRandBytes(12);
+            if (hasWebCrypto()) {
+                try {
+                    const key = await crypto.subtle.importKey("raw", await gtdPbkdf(pw, salt, GTD_KEY_ITER, 256), "AES-GCM", false, ["encrypt"]);
+                    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, gtdEnc.encode(JSON.stringify(obj))));
+                    return { app: "GoToDream", v: 1, kdf: "PBKDF2-SHA256", iter: GTD_KEY_ITER, salt: gtdB64(salt), iv: gtdB64(iv), ct: gtdB64(ct) };
+                } catch (e) {}
+            }
+            const kb = await gtdPbkdf(pw, salt, 1000, 256);
+            const pt = gtdEnc.encode(JSON.stringify(obj));
+            const ct = new Uint8Array(pt.length);
+            for (let i = 0; i < pt.length; i++) ct[i] = pt[i] ^ kb[i & 31] ^ iv[i % 12] ^ (i & 255);
+            return { app: "GoToDream", v: 1, kdf: "LOCAL-FALLBACK", iter: 1000, salt: gtdB64(salt), iv: gtdB64(iv), ct: gtdB64(ct) };
         }
         async function gtdDecrypt(f, pw) {
             if (!f || f.app !== "GoToDream" || !f.ct) throw new Error("Go to Dream 암호 파일이 아닙니다");
+            if (f.kdf === "LOCAL-FALLBACK") {
+                const kb = await gtdPbkdf(pw, gtdUnB64(f.salt), 1000, 256);
+                const iv = gtdUnB64(f.iv), ct = gtdUnB64(f.ct), pt = new Uint8Array(ct.length);
+                for (let i = 0; i < ct.length; i++) pt[i] = ct[i] ^ kb[i & 31] ^ iv[i % 12] ^ (i & 255);
+                try { return JSON.parse(new TextDecoder().decode(pt)); } catch (e) { throw new Error("이름 또는 비밀번호가 맞지 않습니다"); }
+            }
             const key = await crypto.subtle.importKey("raw", await gtdPbkdf(pw, gtdUnB64(f.salt), Number(f.iter) || GTD_KEY_ITER, 256), "AES-GCM", false, ["decrypt"]);
             let pt;
             try { pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: gtdUnB64(f.iv) }, key, gtdUnB64(f.ct)); }
@@ -5785,12 +5836,60 @@
                 top: (Array.isArray(L.top5Majors) ? L.top5Majors : []).slice(0, 5).map(m => ({ name: String(m.name || ""), fit: Number(m.fit) || 0 }))
             };
         }
+
+        // ───────── 온라인(GitHub) 및 오프라인(로컬 파일) 적성검사 브리지 자동 수신 ─────────
+        window.codexDecodeBridgeB64 = function(b64) {
+            if (!b64) return null;
+            try {
+                const clean = decodeURIComponent(b64).trim();
+                const bin = atob(clean);
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                const jsonStr = new TextDecoder().decode(bytes);
+                return JSON.parse(jsonStr);
+            } catch (e) {
+                return null;
+            }
+        };
+        window.codexExtractIncomingBridge = function() {
+            try {
+                if (window.__INJECTED_APT_BRIDGE__ && typeof window.__INJECTED_APT_BRIDGE__ === "object" && window.__INJECTED_APT_BRIDGE__.app === "TOTAL_CODEX_2028_APTITUDE_BRIDGE") {
+                    const p = window.__INJECTED_APT_BRIDGE__;
+                    try { localStorage.setItem("CODEX2028_APTITUDE_BRIDGE_v1", JSON.stringify(p)); } catch (e) {}
+                    return p;
+                }
+                const h = String(location.hash || "");
+                const m = h.match(/(?:^|[#&])apt_data=([^&]+)/);
+                if (m && m[1]) {
+                    const p = window.codexDecodeBridgeB64(m[1]);
+                    if (p && p.app === "TOTAL_CODEX_2028_APTITUDE_BRIDGE") {
+                        window.__INJECTED_APT_BRIDGE__ = p;
+                        try { localStorage.setItem("CODEX2028_APTITUDE_BRIDGE_v1", JSON.stringify(p)); } catch (e) {}
+                        return p;
+                    }
+                }
+                if (typeof window.name === "string" && window.name.indexOf("CODEX_APT_BRIDGE:") === 0) {
+                    const p = window.codexDecodeBridgeB64(window.name.slice("CODEX_APT_BRIDGE:".length));
+                    if (p && p.app === "TOTAL_CODEX_2028_APTITUDE_BRIDGE") {
+                        window.__INJECTED_APT_BRIDGE__ = p;
+                        try { localStorage.setItem("CODEX2028_APTITUDE_BRIDGE_v1", JSON.stringify(p)); } catch (e) {}
+                        return p;
+                    }
+                }
+            } catch (e) {}
+            return null;
+        };
+        try { window.codexExtractIncomingBridge(); } catch (e) {}
+
         function aptApplyBridge(p) {
             const b = aptFromBridge(p);
             if (!b) { showToast("⚠️ 적성검사 결과 형식을 읽지 못했습니다."); return false; }
             if (typeof gtd !== "undefined") {
-                if (!gtd) { aptPendingBridge = true; showToast("👤 먼저 학생을 열어 주세요 — 학생을 열면 적성검사 결과를 그 학생에게 넣습니다."); return false; }
-                if (b.name && gtdNorm(b.name) !== gtdNorm(gtd.name) && !window.confirm(`적성검사 학생 이름(${b.name})과 지금 열린 학생(${gtd.name})이 다릅니다.\n그래도 ${gtd.name} 학생에게 넣을까요?`)) return false;
+                if (!gtd) {
+                    aptPendingBridge = true;
+                } else if (b.name && gtdNorm(b.name) !== gtdNorm(gtd.name) && !window.confirm(`적성검사 학생 이름(${b.name})과 지금 열린 학생(${gtd.name})이 다릅니다.\n그래도 ${gtd.name} 학생에게 넣을까요?`)) {
+                    return false;
+                }
             }
             aptState = Object.assign({}, aptState, {
                 scores: b.scores, areas: [], test: dStr("통합 진로·적성 진단" + (b.code ? " · " + b.code : ""), 60), date: normDateCell(b.date),
@@ -5801,19 +5900,29 @@
             if (typeof hsScheduleSave === "function") hsScheduleSave();
             if (hasActiveScore) recalcAll();
             gotoBoard("aptitude");
-            showToast(`🔗 적성검사 결과(${b.name || "이름 없음"} · ${b.code} · ${b.date})를 가져왔습니다. 세특·학종 역량 점수는 바꾸지 않습니다.`);
+            if (typeof gtd !== "undefined" && !gtd) {
+                showToast(`🔗 적성검사 결과(${b.name || "이름 없음"} · ${b.code} · ${b.date})를 [5. 적성] 탭에 불러왔습니다. (상단에서 학생을 열면 학생 저장본에도 자동 반영됩니다.)`);
+            } else {
+                showToast(`🔗 적성검사 결과(${b.name || "이름 없음"} · ${b.code} · ${b.date})를 가져왔습니다. 세특·학종 역량 점수는 바꾸지 않습니다.`);
+            }
             return true;
         }
         function aptPullBridge() {
-            let p = null; try { p = JSON.parse(localStorage.getItem(APT_BRIDGE_KEY) || "null"); } catch (e) { p = null; }
-            if (!p) { showToast("이 기기에 적성검사 결과가 없습니다. 적성검사 사이트에서 검사를 마친 뒤 [Go to Dream으로 보내기]를 누르거나, 결과 파일(.json·.html)을 불러오세요."); return false; }
+            let p = (typeof window.codexExtractIncomingBridge === "function") ? window.codexExtractIncomingBridge() : null;
+            if (!p) { try { p = JSON.parse(localStorage.getItem(APT_BRIDGE_KEY) || "null"); } catch (e) { p = null; } }
+            if (!p) { showToast("이 기기에 적성검사 결과가 없습니다. 적성검사(my way)에서 검사를 마친 뒤 [Go to Dream으로 보내기]를 누르거나, 결과 파일(.json·.html)을 불러오세요."); return false; }
             return aptApplyBridge(p);
         }
         function aptAfterStudentOpen() { if (aptPendingBridge) { aptPendingBridge = false; aptPullBridge(); } }
         function aptCheckUrl() {
-            if (!/[?&]apt=1\b/.test(location.search)) return;
-            try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) { /* 무시 */ }
-            if (typeof gtd !== "undefined" && !gtd) { aptPendingBridge = true; showToast("🔗 적성검사 결과가 도착했습니다 — 위에서 학생을 열면(또는 등록하면) 그 학생에게 넣습니다."); return; }
+            const incoming = (typeof window.codexExtractIncomingBridge === "function") ? window.codexExtractIncomingBridge() : null;
+            const hasAptQueryOrHash = /[?&]apt=1\b/.test(location.search) || /[#&]apt=1\b/.test(location.hash) || !!window.__FORCE_APT_LOAD__;
+            if (!incoming && !hasAptQueryOrHash) return;
+            try {
+                const cleanHash = String(location.hash || "").replace(/(?:^|[#&])apt=1\b/g, "").replace(/(?:^|[#&])apt_data=[^&]+/g, "");
+                history.replaceState(null, "", location.pathname + (cleanHash && cleanHash !== "#" ? cleanHash : ""));
+            } catch (e) { /* 무시 */ }
+            if (typeof gtd !== "undefined" && !gtd) { aptPendingBridge = true; }
             aptPullBridge();
         }
         function aptHopeFromTarget() {
